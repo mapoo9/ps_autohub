@@ -1,10 +1,10 @@
-# Codex-01 Notes
+# PS-AutoHUB Notes
 
 ## PS-autoHUB Test Panel
 
-- Primary test panel path: `/Users/kisoon/Documents/0_vibeCoding/Codex-01/PS-autoHUB_test`
-- Use this folder as the default Photoshop UXP test target.
-- When testing breaks badly, refresh this folder from the latest working build instead of patching old copied build folders.
+- Primary panel path: `/Users/kisoon/Documents/0_vibeCoding/PS-AutoHUB`
+- Use the repository root as the default Photoshop UXP test target.
+- When testing breaks badly, restore the root panel files from the latest working commit or build instead of recreating a nested copied test folder.
 
 ## Action Stop Behavior
 
