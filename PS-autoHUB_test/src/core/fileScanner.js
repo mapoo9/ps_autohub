@@ -3,19 +3,14 @@
  * 폴더를 스캔하여 지원 포맷 파일 목록을 반환한다.
  *
  * 주요 기능:
- *   - 단일 폴더 또는 두 폴더(교차 로딩) 스캔
+ *   - single / sameFolderPair / crossFolder 모드 스캔
  *   - 지원 확장자 필터링
  *   - 정렬 (name_asc / name_desc / date_modified)
  *   - Subfolders 옵션 (재귀 탐색)
- *   - 교차 로딩 시 파일 수 일치 검증
  */
 
 'use strict';
 
-const uxp = require('uxp');
-const fs  = uxp.storage.localFileSystem;
-
-// ── 지원 확장자 ────────────────────────────────────────────────
 const SUPPORTED_EXTENSIONS = new Set([
   'psd', 'psb',
   'jpg', 'jpeg',
@@ -30,13 +25,11 @@ const SUPPORTED_EXTENSIONS = new Set([
   'raw', 'arw', 'cr2', 'cr3', 'nef', 'orf', 'raf', 'rw2', 'dng'
 ]);
 
-// ── 확장자 추출 ────────────────────────────────────────────────
 function getExt(name) {
   const i = name.lastIndexOf('.');
   return i >= 0 ? name.slice(i + 1).toLowerCase() : '';
 }
 
-// ── 단일 폴더 스캔 (재귀 옵션 포함) ───────────────────────────
 async function scanFolder(folderEntry, subfolders = false) {
   const entries = await folderEntry.getEntries();
   let files = [];
@@ -58,9 +51,6 @@ async function scanFolder(folderEntry, subfolders = false) {
   return files;
 }
 
-// ── 정렬 ──────────────────────────────────────────────────────
-// UXP Entry에서 date_modified는 entry.getMetadata() 로 가져옴
-// name 정렬은 동기로 처리, date 정렬은 비동기 메타데이터 필요
 async function sortFiles(files, sortBy = 'name_asc') {
   if (sortBy === 'name_asc') {
     return [...files].sort((a, b) =>
@@ -75,7 +65,6 @@ async function sortFiles(files, sortBy = 'name_asc') {
   }
 
   if (sortBy === 'date_modified') {
-    // 메타데이터를 한 번에 가져와서 정렬
     const withMeta = await Promise.all(
       files.map(async (entry) => {
         try {
@@ -86,20 +75,17 @@ async function sortFiles(files, sortBy = 'name_asc') {
         }
       })
     );
+
     return withMeta
       .sort((a, b) => a.mtime - b.mtime)
-      .map(item => item.entry);
+      .map((item) => item.entry);
   }
 
-  // 기본값: name_asc
   return [...files].sort((a, b) =>
     a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
   );
 }
 
-// ── 교차 로딩 쌍 생성 ─────────────────────────────────────────
-// crossOrder: '1to2' → [sf1[i], sf2[i]] 순
-//             '2to1' → [sf2[i], sf1[i]] 순
 function buildCrossPairs(files1, files2, crossOrder = '1to2') {
   if (files1.length !== files2.length) {
     throw new Error(
@@ -115,44 +101,59 @@ function buildCrossPairs(files1, files2, crossOrder = '1to2') {
   });
 }
 
-// ── 메인 스캔 함수 ─────────────────────────────────────────────
-/**
- * scanFiles(options)
- *
- * options:
- *   folder1     {Entry}   필수 — 소스 폴더 1
- *   folder2     {Entry}   옵션 — 소스 폴더 2 (교차 로딩용)
- *   subfolders  {boolean} 기본 false
- *   sortBy      {string}  'name_asc' | 'name_desc' | 'date_modified'
- *   crossOrder  {string}  '1to2' | '2to1'  (folder2 있을 때만 유효)
- *
- * 반환값:
- *   folder2 없음 → Entry[] (단순 목록)
- *   folder2 있음 → { primary: Entry, secondary: Entry }[]
- */
+function buildSameFolderPairs(files, crossOrder = '1to2') {
+  if (files.length < 2) {
+    throw new Error('Same folder x2를 사용하려면 Folder 1에 지원 포맷 파일이 최소 2개 필요합니다.');
+  }
+
+  if (files.length % 2 !== 0) {
+    throw new Error(`Same folder x2 오류: Folder 1 파일 수는 짝수여야 합니다. 현재 ${files.length}개입니다.`);
+  }
+
+  const pairs = [];
+  for (let i = 0; i < files.length; i += 2) {
+    const first = files[i];
+    const second = files[i + 1];
+    pairs.push(
+      crossOrder === '1to2'
+        ? { primary: first, secondary: second }
+        : { primary: second, secondary: first }
+    );
+  }
+  return pairs;
+}
+
 async function scanFiles(options = {}) {
   const {
     folder1,
-    folder2    = null,
+    folder2 = null,
     subfolders = false,
-    sortBy     = 'name_asc',
-    crossOrder = '1to2'
+    sortBy = 'name_asc',
+    crossOrder = '1to2',
+    mode = 'single'
   } = options;
 
   if (!folder1) throw new Error('Folder 1이 지정되지 않았습니다.');
 
-  // 폴더 1 스캔 + 정렬
-  const raw1    = await scanFolder(folder1, subfolders);
+  const raw1 = await scanFolder(folder1, subfolders);
   const sorted1 = await sortFiles(raw1, sortBy);
 
-  // 단일 폴더
-  if (!folder2) return sorted1;
+  if (mode === 'single') {
+    return sorted1;
+  }
 
-  // 교차 로딩
-  const raw2    = await scanFolder(folder2, subfolders);
-  const sorted2 = await sortFiles(raw2, sortBy);
+  if (mode === 'sameFolderPair') {
+    return buildSameFolderPairs(sorted1, crossOrder);
+  }
 
-  return buildCrossPairs(sorted1, sorted2, crossOrder);
+  if (mode === 'crossFolder') {
+    if (!folder2) throw new Error('Folder 2가 지정되지 않았습니다.');
+    const raw2 = await scanFolder(folder2, subfolders);
+    const sorted2 = await sortFiles(raw2, sortBy);
+    return buildCrossPairs(sorted1, sorted2, crossOrder);
+  }
+
+  throw new Error(`지원하지 않는 스캔 모드입니다: ${mode}`);
 }
 
 module.exports = {
@@ -160,6 +161,7 @@ module.exports = {
   scanFolder,
   sortFiles,
   buildCrossPairs,
+  buildSameFolderPairs,
   SUPPORTED_EXTENSIONS,
   getExt
 };

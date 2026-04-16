@@ -51,6 +51,7 @@ function diffDocIds(afterIds, beforeIds) {
 function classifyTargets(job, targetDocIds, config) {
   const targets = [];
   let newIndex = 0;
+  const isCrossFolder = config.mode === 'crossFolder';
 
   for (const docId of targetDocIds) {
     if (docId === job.docIds.primary) {
@@ -65,14 +66,15 @@ function classifyTargets(job, targetDocIds, config) {
         newIndex: 0
       });
     } else if (job.secondary && docId === job.docIds.secondary) {
-      const useD2 = !!(config.folder2 && config.saveFolder1 && !config.saveFolder2);
+      const secondaryRootFolder = isCrossFolder ? (config.folder2 || config.folder1) : config.folder1;
+      const useD2 = !!(isCrossFolder && config.folder2 && config.saveFolder1 && !config.saveFolder2);
       targets.push({
         kind: 'S2',
         docId,
         sourceEntry: job.secondary,
-        rootSourceFolder: config.folder2 || config.folder1,
+        rootSourceFolder: secondaryRootFolder,
         baseName: job.secondaryBaseName,
-        relativeDir: getRelativeDir(job.secondary, config.folder2 || config.folder1),
+        relativeDir: getRelativeDir(job.secondary, secondaryRootFolder),
         isD2: useD2,
         newIndex: 0
       });
@@ -96,7 +98,12 @@ function classifyTargets(job, targetDocIds, config) {
 
 function resolveRootSaveFolder(target, config) {
   if (target.kind === 'S1') return config.saveFolder1 || config.folder1;
-  if (target.kind === 'S2') return config.saveFolder2 || config.saveFolder1 || config.folder2 || config.folder1;
+  if (target.kind === 'S2') {
+    if (config.mode === 'crossFolder') {
+      return config.saveFolder2 || config.saveFolder1 || config.folder2 || config.folder1;
+    }
+    return config.saveFolder1 || config.folder1;
+  }
   return config.saveFolder1 || config.folder1;
 }
 
@@ -131,7 +138,7 @@ async function runBatch(config = {}, callbacks = {}) {
   const {
     folder1 = null, folder2 = null, actions = [], saveCopy = false,
     saveFolder1 = null, saveFolder2 = null, suffix = '', subfolders = false,
-    sortBy = 'name_asc', crossOrder = '1to2'
+    sortBy = 'name_asc', crossOrder = '1to2', mode = 'single'
   } = config;
 
   const {
@@ -139,14 +146,14 @@ async function runBatch(config = {}, callbacks = {}) {
     onComplete = () => {}, onDebugLog = () => {}, isCancelled = () => false, setCancelled = () => {}
   } = callbacks;
 
-  const preResult = await preflight({ folder1, folder2, actions, saveCopy, saveFolder1, saveFolder2, subfolders });
+  const preResult = await preflight({ folder1, folder2, actions, saveCopy, saveFolder1, saveFolder2, subfolders, mode });
   onPreflight(preResult);
   if (!preResult.ok) return;
 
   let fileList;
   try {
-    onDebugLog(`[Subfolders][Scan] start subfolders=${subfolders} sort=${sortBy} crossOrder=${crossOrder}`);
-    fileList = await scanFiles({ folder1, folder2, subfolders, sortBy, crossOrder });
+    onDebugLog(`[Subfolders][Scan] start mode=${mode} subfolders=${subfolders} sort=${sortBy} crossOrder=${crossOrder}`);
+    fileList = await scanFiles({ folder1, folder2, subfolders, sortBy, crossOrder, mode });
     onDebugLog(`[Subfolders][Scan] result count=${fileList.length}`);
   } catch (e) {
     onPreflight({ ok: false, errors: ['파일 스캔 실패: ' + e.message], warnings: [] });
@@ -160,20 +167,20 @@ async function runBatch(config = {}, callbacks = {}) {
   }
 
   const summary = { total, processed: 0, saveEr: 0, skipped: 0, cancelled: false, fatalActionStop: false };
+  const isPairedMode = mode !== 'single';
 
   for (let i = 0; i < total; i++) {
     if (isCancelled()) {
       summary.cancelled = true;
       for (let j = i; j < total; j++) {
-        const e = folder2 ? fileList[j].primary : fileList[j];
+        const e = isPairedMode ? fileList[j].primary : fileList[j];
         onFileLog({ index: j, fileName: e.name, status: LOG_STATUS.CANCELLED, detail: '' });
       }
       break;
     }
 
-    const isCross   = !!folder2;
-    const primary   = isCross ? fileList[i].primary   : fileList[i];
-    const secondary = isCross ? fileList[i].secondary : null;
+    const primary = isPairedMode ? fileList[i].primary : fileList[i];
+    const secondary = isPairedMode ? fileList[i].secondary : null;
     const primaryBaseName   = primary.name.replace(/\.[^.]+$/, '');
     const secondaryBaseName = secondary ? secondary.name.replace(/\.[^.]+$/, '') : '';
     const beforeDocIds = listCurrentDocIds();
@@ -187,6 +194,8 @@ async function runBatch(config = {}, callbacks = {}) {
       }, { commandName: 'BatchProcess_' + primary.name });
     } catch (e) {
       actionResult = {
+        success : false,
+        stopBatch: true,
         status  : LOG_STATUS.ERROR,
         error   : e.message,
         userStop: false,
@@ -199,8 +208,11 @@ async function runBatch(config = {}, callbacks = {}) {
     const afterDocIds = listCurrentDocIds();
     const resultDocIds = diffDocIds(afterDocIds, beforeDocIds);
     const job = { primary, secondary, primaryBaseName, secondaryBaseName, docIds: actionResult.docIds || { primary: null, secondary: null } };
+    onDebugLog(`[ActionResult] success=${String(actionResult.success)} stopBatch=${String(actionResult.stopBatch)} status=${actionResult.status} stage=${actionResult.errorStage || '-'} fatal=${String(actionResult.fatalActionStop)} userStop=${String(actionResult.userStop)} docsAfter=${afterDocIds.length}`);
 
     const shouldStopBatchAfterAction =
+      actionResult.success !== true ||
+      !!actionResult.stopBatch ||
       !!actionResult.fatalActionStop ||
       (actionResult.status === LOG_STATUS.ERROR && actionResult.errorStage === 'action');
 
@@ -209,9 +221,9 @@ async function runBatch(config = {}, callbacks = {}) {
       summary.fatalActionStop = !!actionResult.fatalActionStop || actionResult.errorStage === 'action';
       onFileLog({ index: i, fileName: primary.name, status: LOG_STATUS.ERROR, detail: actionResult.error || '액션 실행 중단' });
       setCancelled(true);
-      onDebugLog('[ForceStop] action-stage stop detected; keep current Photoshop document state and stop batch');
+      onDebugLog('[ForceStop] action-stage stop detected; stop batch immediately and keep current Photoshop document state');
       for (let j = i + 1; j < total; j++) {
-        const e = folder2 ? fileList[j].primary : fileList[j];
+        const e = isPairedMode ? fileList[j].primary : fileList[j];
         onFileLog({ index: j, fileName: e.name, status: LOG_STATUS.CANCELLED, detail: '' });
       }
       break;
@@ -229,7 +241,7 @@ async function runBatch(config = {}, callbacks = {}) {
       continue;
     }
 
-    const targets = classifyTargets(job, resultDocIds, { folder1, folder2, saveFolder1, saveFolder2 });
+    const targets = classifyTargets(job, resultDocIds, { folder1, folder2, saveFolder1, saveFolder2, mode });
 
     for (const target of targets) {
       if (isCancelled()) { summary.cancelled = true; break; }
@@ -237,7 +249,7 @@ async function runBatch(config = {}, callbacks = {}) {
       const doc = findDocById(target.docId);
       if (!doc) continue;
 
-      const rootFolder = resolveRootSaveFolder(target, { folder1, folder2, saveFolder1, saveFolder2 });
+      const rootFolder = resolveRootSaveFolder(target, { folder1, folder2, saveFolder1, saveFolder2, mode });
       const relativeDir = subfolders ? target.relativeDir : '';
       onDebugLog(`[Subfolders][Relative] kind=${target.kind} file=${target.sourceEntry ? target.sourceEntry.name : '-'} relative=${relativeDir || '.'}`);
       const targetFolder = await ensureRelativeFolder(rootFolder, relativeDir);
@@ -258,7 +270,7 @@ async function runBatch(config = {}, callbacks = {}) {
       // B-01: 소스 .psd + 저장폴더 미지정 케이스 덮어쓰기 여부 결정
       const overwritePsd = shouldOverwritePsd(
         target.sourceEntry,
-        resolveRootSaveFolder(target, { folder1, folder2, saveFolder1, saveFolder2 }),
+        resolveRootSaveFolder(target, { folder1, folder2, saveFolder1, saveFolder2, mode }),
         target.rootSourceFolder,
         !!saveCopy
       );

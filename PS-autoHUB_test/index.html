@@ -6,133 +6,185 @@
   <link rel="stylesheet" href="styles/panel.css" />
 </head>
 <body>
-<div id="scroll-wrap">
-
-  <div class="panel-title">PS-autoHUB v0.2.00 / build 200</div>
-  <div class="preview-banner" id="previewBanner" style="display:none;">
-    Browser Preview Mode · Photoshop API 없이 UI만 미리 확인 중
-  </div>
-
-  <div class="section" id="section-open">
-    <div class="section-label">Open</div>
-
-    <div class="row row-sort">
-      <span class="field-label">Sort</span>
-      <div class="sort-controls">
-        <select id="sortBy" class="select-field select-field-sort">
-          <option value="name_asc">name ↑</option>
-          <option value="name_desc">name ↓</option>
-          <option value="date_modified">date modified</option>
-        </select>
-        <label class="toggle-wrap toggle-wrap-subfolders">
-          <span class="toggle-label">Subfolders</span>
-          <div class="toggle" id="toggleSubfolders" data-on="false"></div>
-        </label>
-      </div>
-    </div>
-
-    <div class="row">
-      <span class="field-label">Folder 1</span>
-      <button class="path-btn empty" id="displayFolder1">—</button>
-      <button class="btn-folder-action" id="btnFolder1">Browse</button>
-    </div>
-
-    <div class="row">
-      <span class="field-label">Folder 2</span>
-      <button class="path-btn empty" id="displayFolder2">—</button>
-      <button class="btn-folder-action" id="btnFolder2">Browse</button>
-    </div>
-
-    <div class="row">
-      <span class="field-label">Cross order</span>
-      <button class="btn-cross" id="btnCrossOrder">1 → 2</button>
-    </div>
-  </div>
-
-  <div class="color-line"></div>
-
-  <div class="section" id="section-action">
-    <div class="section-head">
-      <div class="section-label" style="margin-bottom:0;">Action</div>
-      <button class="btn-refresh-actions" id="btnRefreshActions">Refresh All Actions</button>
-    </div>
-    <div id="actionList"></div>
-    <button class="btn-add-action" id="btnAddAction">+ action <span id="actionCount">(1/10)</span></button>
-  </div>
-
-  <div class="section" id="section-save">
-    <div class="section-label">Save</div>
-
-    <div class="row row-save-copy">
-      <span class="field-label">Save Copy</span>
-      <div class="save-copy-controls">
-        <div class="save-copy-toggle-group">
-          <div class="toggle" id="toggleSaveCopy" data-on="false"></div>
+  <div class="panel-shell">
+    <div id="scroll-wrap">
+      <header class="panel-header">
+        <div class="panel-eyebrow">PS-autoHUB</div>
+        <div class="panel-title">v0.2.00 / build 200</div>
+        <div class="debug-strip" id="debugStrip">
+          <span id="debugBuild">build=?</span>
+          <span id="debugSort">sort=?</span>
+          <span id="debugActions">actions=?</span>
         </div>
-        <div class="suffix-group">
-          <span class="field-label field-label-inline">Suffix</span>
-          <input type="text" class="input-suffix" id="inputSuffix" placeholder="" />
+        <div class="preview-banner" id="previewBanner" style="display:none;">
+          Browser Preview Mode · Photoshop API 없이 UI만 미리 확인 중
         </div>
-      </div>
-    </div>
+      </header>
 
-    <div class="row">
-      <span class="field-label">Folder 1</span>
-      <button class="path-btn empty" id="displaySaveFolder1">—</button>
-      <button class="btn-folder-action" id="btnSaveFolder1">Browse</button>
-    </div>
+      <main class="panel-content">
+        <section class="panel-section" id="section-open">
+          <div class="section-label">Open</div>
 
-    <div class="row">
-      <span class="field-label">Folder 2</span>
-      <button class="path-btn empty" id="displaySaveFolder2">—</button>
-      <button class="btn-folder-action" id="btnSaveFolder2">Browse</button>
+          <div class="sort-control-hidden" aria-hidden="true">
+            <select id="sortBy" class="select-field select-field-sort">
+              <option value="name_asc">name ↑</option>
+              <option value="name_desc">name ↓</option>
+              <option value="date_modified">date modified</option>
+            </select>
+          </div>
+
+          <div class="row">
+            <span class="field-label">Folder 1</span>
+            <button class="path-btn empty" id="displayFolder1">—</button>
+            <button class="btn-folder-action" id="btnFolder1">Browse</button>
+          </div>
+
+          <div class="row row-open-mode">
+            <span class="field-label">Mode</span>
+            <div class="open-mode-controls">
+              <div class="toggle-wrap" id="sameFolderX2Wrap">
+                <span class="toggle-label">Same folder x2</span>
+                <button class="toggle" id="toggleSameFolderX2" type="button" data-on="false" aria-pressed="false"></button>
+              </div>
+              <div class="toggle-wrap toggle-wrap-subfolders">
+                <span class="toggle-label">Subfolders</span>
+                <button class="toggle" id="toggleSubfolders" type="button" data-on="false" aria-pressed="false"></button>
+              </div>
+            </div>
+          </div>
+
+          <div class="row row-disclosure">
+            <span class="field-label"></span>
+            <button class="btn-disclosure" id="btnFolder2Disclosure" type="button" aria-expanded="false" aria-controls="openFolder2Content">
+              <span class="icon-mask icon-chevron-right" aria-hidden="true"></span>
+              <span>Folder 2</span>
+            </button>
+          </div>
+
+          <div class="disclosure-content" id="openFolder2Content" hidden>
+            <div class="row">
+              <span class="field-label">Folder 2</span>
+              <button class="path-btn empty" id="displayFolder2">—</button>
+              <button class="btn-folder-action" id="btnFolder2">Browse</button>
+            </div>
+          </div>
+
+          <div class="row">
+            <span class="field-label">Open order</span>
+            <button class="btn-cross" id="btnCrossOrder">1 → 2</button>
+          </div>
+        </section>
+
+        <section class="panel-section" id="section-action">
+          <div class="section-head">
+            <div class="section-label section-label-inline">Action</div>
+            <button class="btn-toolbar" id="btnRefreshActions" type="button">
+              <span class="icon-mask icon-refresh" aria-hidden="true"></span>
+              <span>Refresh All Actions</span>
+            </button>
+          </div>
+          <div id="actionList"></div>
+          <button class="btn-add-action" id="btnAddAction" type="button">
+            <span class="btn-add-action-main">
+              <span class="icon-mask icon-add" aria-hidden="true"></span>
+              <span>Add action</span>
+            </span>
+            <span id="actionCount">(1/10)</span>
+          </button>
+        </section>
+
+        <section class="panel-section" id="section-save">
+          <div class="section-label">Save</div>
+
+          <div class="row row-save-copy">
+            <span class="field-label">Save Copy</span>
+            <div class="save-copy-controls">
+              <div class="save-copy-toggle-group">
+                <button class="toggle" id="toggleSaveCopy" type="button" data-on="false" aria-pressed="false"></button>
+              </div>
+              <div class="suffix-group">
+                <span class="field-label field-label-inline">Suffix</span>
+                <input type="text" class="input-suffix" id="inputSuffix" placeholder="" />
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <span class="field-label">Folder 1</span>
+            <button class="path-btn empty" id="displaySaveFolder1">—</button>
+            <button class="btn-folder-action" id="btnSaveFolder1">Browse</button>
+          </div>
+
+          <div class="row row-disclosure">
+            <span class="field-label"></span>
+            <button class="btn-disclosure" id="btnSaveFolder2Disclosure" type="button" aria-expanded="false" aria-controls="saveFolder2Content">
+              <span class="icon-mask icon-chevron-right" aria-hidden="true"></span>
+              <span>Folder 2</span>
+            </button>
+          </div>
+
+          <div class="disclosure-content" id="saveFolder2Content" hidden>
+            <div class="row">
+              <span class="field-label">Folder 2</span>
+              <button class="path-btn empty" id="displaySaveFolder2">—</button>
+              <button class="btn-folder-action" id="btnSaveFolder2">Browse</button>
+            </div>
+          </div>
+        </section>
+
+        <div class="run-area">
+          <button class="btn-cancel" id="btnCancel">Cancel</button>
+          <button class="btn-run" id="btnRun">▶ Run</button>
+        </div>
+
+        <section class="panel-section panel-section-log" id="section-log">
+          <div class="section-head log-header">
+            <button class="log-toggle" id="btnToggleLog" type="button" aria-expanded="false" aria-controls="logContent">
+              <span class="icon-mask icon-chevron-right" aria-hidden="true"></span>
+              <span class="section-label section-label-inline">Log</span>
+              <span class="log-inline-meta">
+                <span class="log-inline-summary" id="logSummaryInline">완료 0 · SaveEr 0 · Skipped 0</span>
+                <span class="log-inline-state" id="logStateInline">대기 중</span>
+              </span>
+            </button>
+            <div class="log-header-actions">
+              <button class="btn-secondary btn-copy-log" id="btnCopyLog" type="button">Copy all</button>
+            </div>
+          </div>
+
+          <div class="log-content" id="logContent" hidden>
+            <div class="progress-wrap">
+              <div class="progress-info">
+                <span class="progress-file" id="progressFile">—</span>
+                <span class="progress-count" id="progressCount">0 / 0</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill" id="progressFill" style="width:0%"></div>
+              </div>
+            </div>
+
+            <div class="log-body" id="logBody"></div>
+
+            <div class="log-footer">
+              <span class="footer-summary" id="footerSummary">완료 0 · SaveEr 0 · Skipped 0</span>
+              <span class="footer-state" id="footerState">대기 중</span>
+            </div>
+          </div>
+        </section>
+      </main>
     </div>
   </div>
 
-  <div class="run-area">
-    <button class="btn-cancel" id="btnCancel">Cancel</button>
-    <button class="btn-run"    id="btnRun">▶ Run</button>
-  </div>
-
-  <div class="log-popup" id="logPopup" style="display:none;">
-    <div class="log-header">
-      <span class="log-title">LOG</span>
-      <div class="log-header-actions">
-        <button class="btn-copy-log" id="btnCopyLog">Copy all</button>
-        <button class="btn-close-log" id="btnCloseLog">✕</button>
+  <div class="alert-backdrop" id="alertBackdrop" style="display:none;">
+    <div class="alert-box">
+      <div class="alert-title" id="alertTitle">Warning</div>
+      <div class="alert-message" id="alertMessage">Message</div>
+      <div class="alert-actions">
+        <button class="btn-alert-ok" id="btnAlertOk">OK</button>
       </div>
-    </div>
-
-    <div class="progress-wrap">
-      <div class="progress-info">
-        <span class="progress-file" id="progressFile">—</span>
-        <span class="progress-count" id="progressCount">0 / 0</span>
-      </div>
-      <div class="progress-track">
-        <div class="progress-fill" id="progressFill" style="width:0%"></div>
-      </div>
-    </div>
-
-    <div class="log-body" id="logBody"></div>
-
-    <div class="log-footer">
-      <span class="footer-summary" id="footerSummary">완료 0 · SaveEr 0 · Skipped 0</span>
-      <span class="footer-state"   id="footerState">대기 중</span>
     </div>
   </div>
 
-</div>
-
-<div class="alert-backdrop" id="alertBackdrop" style="display:none;">
-  <div class="alert-box">
-    <div class="alert-title" id="alertTitle">Warning</div>
-    <div class="alert-message" id="alertMessage">Message</div>
-    <div class="alert-actions">
-      <button class="btn-alert-ok" id="btnAlertOk">OK</button>
-    </div>
-  </div>
-</div>
-
-<script src="index.js"></script>
+  <script src="index.js"></script>
 </body>
 </html>
