@@ -24,9 +24,7 @@ function createActionPresetPart({
   };
 
   const elements = {};
-  let refreshPromise = null;
   let initialized = false;
-  let refreshToken = 0;
   const PLACEHOLDER_VALUES = new Set([NO_ACTION_SET, NO_ACTION, '선택해주세요']);
 
   function notifyChange() {
@@ -166,6 +164,36 @@ function createActionPresetPart({
     return hasAction(slot.setName, slot.actionName) ? slot.actionName : '';
   }
 
+  function firstAvailableSetName() {
+    return state.catalogCommitted[0] ? state.catalogCommitted[0].name : '';
+  }
+
+  function firstAvailableActionName(setName) {
+    const actions = getActionsForSet(setName);
+    return actions[0] || '';
+  }
+
+  function normalizeSlotsAgainstCatalog() {
+    state.slots = state.slots.map((slot) => {
+      const setName = sanitizeValue(slot && slot.setName);
+      const actionName = sanitizeValue(slot && slot.actionName);
+
+      if (!setName && !actionName) {
+        return { setName: '', actionName: '', enabled: slot && slot.enabled !== false };
+      }
+
+      if (setName && !hasSet(setName)) {
+        return { setName: '', actionName: '', enabled: slot && slot.enabled !== false };
+      }
+
+      if (setName && actionName && !hasAction(setName, actionName)) {
+        return { setName, actionName: '', enabled: slot && slot.enabled !== false };
+      }
+
+      return { setName: setName || '', actionName: actionName || '', enabled: slot && slot.enabled !== false };
+    });
+  }
+
   function buildOption(label, value, selected = false) {
     const option = document.createElement('option');
     option.value = value;
@@ -173,23 +201,6 @@ function createActionPresetPart({
     option.selected = selected;
     option.title = label;
     return option;
-  }
-
-  function syncNativeSelectDisplay(select, desiredValue) {
-    if (!select) return;
-
-    const options = Array.from(select.options || []);
-    if (!options.length) return;
-
-    let nextIndex = options.findIndex((option) => option.value === desiredValue);
-    if (nextIndex < 0) {
-      nextIndex = Math.max(0, select.selectedIndex);
-    }
-    if (nextIndex < 0) nextIndex = 0;
-
-    const nextValue = options[nextIndex].value;
-    select.value = nextValue;
-    select.selectedIndex = nextIndex;
   }
 
   function render() {
@@ -233,11 +244,9 @@ function createActionPresetPart({
           setSelect.appendChild(placeholder);
         }
         setNames.forEach(name => setSelect.appendChild(buildOption(name, name, name === displaySetName)));
+        setSelect.disabled = false;
       }
-      setSelect.addEventListener('mousedown', () => { requestCatalogRefresh(); });
-      setSelect.addEventListener('focus', () => { requestCatalogRefresh(); });
       setSelect.addEventListener('change', () => setSlotSet(index, setSelect.value || ''));
-      syncNativeSelectDisplay(setSelect, displaySetName);
 
       const actionSelect = document.createElement('select');
       actionSelect.className = 'action-select action-select-field';
@@ -254,11 +263,9 @@ function createActionPresetPart({
           actionSelect.appendChild(placeholder);
         }
         actions.forEach(name => actionSelect.appendChild(buildOption(name, name, name === displayActionName)));
+        actionSelect.disabled = false;
       }
-      actionSelect.addEventListener('mousedown', () => { requestCatalogRefresh(); });
-      actionSelect.addEventListener('focus', () => { requestCatalogRefresh(); });
       actionSelect.addEventListener('change', () => setSlotAction(index, actionSelect.value || ''));
-      syncNativeSelectDisplay(actionSelect, displayActionName);
 
       fields.append(setSelect, actionSelect);
 
@@ -277,24 +284,32 @@ function createActionPresetPart({
     elements.btnAddAction.disabled = state.slots.length >= MAX_ACTION_ROWS;
   }
 
-  async function refreshCatalog({ allowEmpty = true } = {}) {
-    const token = ++refreshToken;
+  async function refreshCatalog({ preserve = true, clearSelections = false } = {}) {
     try {
       state.uiState.refreshing = true;
       const nextCatalog = readCatalog();
 
-      if (token !== refreshToken) return;
-
       if (!isValidCatalog(nextCatalog)) {
         return;
       }
+      state.catalogCommitted = Array.isArray(nextCatalog) ? nextCatalog : [];
 
-      if ((!Array.isArray(nextCatalog) || nextCatalog.length === 0) && !allowEmpty && state.catalogCommitted.length > 0) {
-        return;
+      if (clearSelections) {
+        state.slots = [{ setName: '', actionName: '', enabled: true }];
+      } else if (preserve) {
+        normalizeSlotsAgainstCatalog();
+      } else {
+        const defaultSet = firstAvailableSetName();
+        const defaultAction = firstAvailableActionName(defaultSet);
+        state.slots = state.slots.map((slot) => ({
+          setName: defaultSet,
+          actionName: defaultAction,
+          enabled: slot.enabled !== false
+        }));
       }
 
-      state.catalogCommitted = Array.isArray(nextCatalog) ? nextCatalog : [];
       ensureMinimumSlot();
+      savePreset();
       render();
       notifyChange();
     } catch (error) {
@@ -304,14 +319,9 @@ function createActionPresetPart({
     }
   }
 
-  async function requestCatalogRefresh() {
-    if (!isUxpRuntime) return;
-    if (!refreshPromise) {
-      refreshPromise = refreshCatalog({ allowEmpty: false }).finally(() => {
-        refreshPromise = null;
-      });
-    }
-    return refreshPromise;
+  function requestCatalogRefresh() {
+    if (!isUxpRuntime) return Promise.resolve();
+    return refreshCatalog({ preserve: true });
   }
 
   function getSlots() {
@@ -347,7 +357,7 @@ function createActionPresetPart({
 
   function setSlotSet(index, setName) {
     state.slots[index].setName = setName;
-    state.slots[index].actionName = setName ? (getActionsForSet(setName)[0] || '') : '';
+    state.slots[index].actionName = firstAvailableActionName(setName);
     savePreset();
     render();
     notifyChange();
@@ -385,14 +395,10 @@ function createActionPresetPart({
   }
 
   async function resetToInitialState() {
-    refreshToken += 1;
-    refreshPromise = null;
     state.uiState.refreshing = false;
     state.slots = [{ setName: '', actionName: '', enabled: true }];
-    render();
-    notifyChange();
-
     clearPreset();
+    await refreshCatalog({ preserve: true, clearSelections: true });
   }
 
   function getState() {
@@ -405,7 +411,6 @@ function createActionPresetPart({
         catalogCount: state.catalogCommitted.length,
         slotCount: state.slots.length,
         refreshing: state.uiState.refreshing,
-        pending: !!refreshPromise,
         firstSet: state.catalogCommitted[0] ? state.catalogCommitted[0].name : ''
       }
     };
@@ -413,7 +418,7 @@ function createActionPresetPart({
 
   async function init(ids) {
     if (initialized) {
-      restoreView();
+      await restoreView();
       return;
     }
 
@@ -425,7 +430,6 @@ function createActionPresetPart({
     loadPreset();
     state.catalogCommitted = [];
     ensureMinimumSlot();
-    render();
 
     elements.btnAddAction.addEventListener('click', addEmptySlot);
     elements.btnRefreshActions.addEventListener('click', () => {
@@ -433,16 +437,14 @@ function createActionPresetPart({
       resetToInitialState();
     });
     initialized = true;
-    requestCatalogRefresh();
+    await refreshCatalog({ preserve: true });
   }
 
-  function restoreView() {
+  async function restoreView() {
     loadPreset();
     state.catalogCommitted = [];
     ensureMinimumSlot();
-    render();
-    notifyChange();
-    requestCatalogRefresh();
+    await refreshCatalog({ preserve: true });
   }
 
   return {
