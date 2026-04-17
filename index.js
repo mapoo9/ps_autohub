@@ -272,6 +272,11 @@ function buildLogText() {
 }
 
 function updateDebugPanel() {
+  const debugBuild = $('debugBuild');
+  const debugSort = $('debugSort');
+  const debugActions = $('debugActions');
+  if (!debugBuild || !debugSort || !debugActions) return;
+
   const inputState = inputPart.getState ? inputPart.getState() : null;
   const sortEl = $('sortBy');
   const actionState = actionPresetPart.getState ? actionPresetPart.getState() : null;
@@ -281,9 +286,9 @@ function updateDebugPanel() {
     : '?';
   const sortCount = sortEl && sortEl.options ? sortEl.options.length : 0;
 
-  $('debugBuild').textContent = `build=${BUILD_TOKEN} uxp=${isUxpRuntime ? 'Y' : 'N'}`;
-  $('debugSort').textContent = `mode=${inputState ? inputState.mode : '?'} sort=${sortValue}|${sortLabel}|opts=${sortCount}`;
-  $('debugActions').textContent = actionState
+  debugBuild.textContent = `build=${BUILD_TOKEN} uxp=${isUxpRuntime ? 'Y' : 'N'}`;
+  debugSort.textContent = `mode=${inputState ? inputState.mode : '?'} sort=${sortValue}|${sortLabel}|opts=${sortCount}`;
+  debugActions.textContent = actionState
     ? `slots=${actionState.debug.slotCount} catalog=${actionState.debug.catalogCount} pending=${actionState.debug.pending ? 'Y' : 'N'} first=${actionState.debug.firstSet || '-'}`
     : 'actions=?';
 }
@@ -437,6 +442,11 @@ async function initHub() {
   $('btnRun').addEventListener('click', handleRun);
   $('btnCancel').addEventListener('click', handleCancel);
   $('btnToggleLog').addEventListener('click', () => {
+    setLogExpanded(!state.logExpanded);
+  });
+  $('btnToggleLog').addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    e.preventDefault();
     setLogExpanded(!state.logExpanded);
   });
   $('btnAlertOk').addEventListener('click', hideAlert);

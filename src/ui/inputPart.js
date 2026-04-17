@@ -52,9 +52,9 @@ function createInputPart({ fs = null, isUxpRuntime = false, syncSelectWidth = ()
       return;
     }
 
-    displayEl.textContent = '—';
+    displayEl.textContent = '폴더 선택';
     displayEl.classList.add('empty');
-    displayEl.title = '';
+    displayEl.title = '폴더 선택';
     actionEl.textContent = 'Browse';
     actionEl.classList.remove('is-reset');
   }
@@ -239,6 +239,11 @@ function createInputPart({ fs = null, isUxpRuntime = false, syncSelectWidth = ()
       emitChange();
     });
     elements.btnFolder2Disclosure.addEventListener('click', () => {
+      setFolder2Expanded(!state.folder2Expanded);
+    });
+    elements.btnFolder2Disclosure.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      e.preventDefault();
       setFolder2Expanded(!state.folder2Expanded);
     });
 

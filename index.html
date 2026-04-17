@@ -9,13 +9,7 @@
   <div class="panel-shell">
     <div id="scroll-wrap">
       <header class="panel-header">
-        <div class="panel-eyebrow">PS-autoHUB</div>
         <div class="panel-title">v0.2.00 / build 200</div>
-        <div class="debug-strip" id="debugStrip">
-          <span id="debugBuild">build=?</span>
-          <span id="debugSort">sort=?</span>
-          <span id="debugActions">actions=?</span>
-        </div>
         <div class="preview-banner" id="previewBanner" style="display:none;">
           Browser Preview Mode · Photoshop API 없이 UI만 미리 확인 중
         </div>
@@ -23,7 +17,13 @@
 
       <main class="panel-content">
         <section class="panel-section" id="section-open">
-          <div class="section-label">Open</div>
+          <div class="section-head">
+            <div class="section-label section-label-inline">Open</div>
+            <div class="toggle-wrap toggle-wrap-header">
+              <button class="toggle" id="toggleSubfolders" type="button" data-on="false" aria-pressed="false"></button>
+              <span class="toggle-label">Subfolders</span>
+            </div>
+          </div>
 
           <div class="sort-control-hidden" aria-hidden="true">
             <select id="sortBy" class="select-field select-field-sort">
@@ -33,45 +33,36 @@
             </select>
           </div>
 
-          <div class="row">
-            <span class="field-label">Folder 1</span>
+          <div class="row row-folder">
+            <span class="field-label field-label-folder">Folder</span>
             <button class="path-btn empty" id="displayFolder1">—</button>
             <button class="btn-folder-action" id="btnFolder1">Browse</button>
           </div>
 
-          <div class="row row-open-mode">
-            <span class="field-label">Mode</span>
-            <div class="open-mode-controls">
-              <div class="toggle-wrap" id="sameFolderX2Wrap">
-                <span class="toggle-label">Same folder x2</span>
-                <button class="toggle" id="toggleSameFolderX2" type="button" data-on="false" aria-pressed="false"></button>
-              </div>
-              <div class="toggle-wrap toggle-wrap-subfolders">
-                <span class="toggle-label">Subfolders</span>
-                <button class="toggle" id="toggleSubfolders" type="button" data-on="false" aria-pressed="false"></button>
-              </div>
+          <div class="row row-open-flags">
+            <div class="toggle-wrap toggle-wrap-mode" id="sameFolderX2Wrap">
+              <button class="toggle" id="toggleSameFolderX2" type="button" data-on="false" aria-pressed="false"></button>
+              <span class="toggle-label">1Folder 2file</span>
+            </div>
+            <div class="order-wrap">
+              <span class="toggle-label">order</span>
+              <button class="btn-cross" id="btnCrossOrder">1 → 2</button>
             </div>
           </div>
 
           <div class="row row-disclosure">
-            <span class="field-label"></span>
-            <button class="btn-disclosure" id="btnFolder2Disclosure" type="button" aria-expanded="false" aria-controls="openFolder2Content">
-              <span class="icon-mask icon-chevron-right" aria-hidden="true"></span>
-              <span>Folder 2</span>
-            </button>
-          </div>
-
-          <div class="disclosure-content" id="openFolder2Content" hidden>
-            <div class="row">
-              <span class="field-label">Folder 2</span>
-              <button class="path-btn empty" id="displayFolder2">—</button>
-              <button class="btn-folder-action" id="btnFolder2">Browse</button>
+            <div class="btn-disclosure" id="btnFolder2Disclosure" role="button" tabindex="0" aria-expanded="false" aria-controls="openFolder2Content">
+              <span class="accordion-icon" aria-hidden="true"></span>
+              <span class="accordion-label">2Folder each1file</span>
             </div>
           </div>
 
-          <div class="row">
-            <span class="field-label">Open order</span>
-            <button class="btn-cross" id="btnCrossOrder">1 → 2</button>
+          <div class="disclosure-content" id="openFolder2Content" hidden>
+            <div class="row row-folder">
+              <span class="field-label field-label-folder">Folder 2</span>
+              <button class="path-btn empty" id="displayFolder2">—</button>
+              <button class="btn-folder-action" id="btnFolder2">Browse</button>
+            </div>
           </div>
         </section>
 
@@ -94,13 +85,15 @@
         </section>
 
         <section class="panel-section" id="section-save">
-          <div class="section-label">Save</div>
+          <div class="section-head">
+            <div class="section-label section-label-inline">Save</div>
+          </div>
 
           <div class="row row-save-copy">
-            <span class="field-label">Save Copy</span>
             <div class="save-copy-controls">
-              <div class="save-copy-toggle-group">
+              <div class="save-copy-inline">
                 <button class="toggle" id="toggleSaveCopy" type="button" data-on="false" aria-pressed="false"></button>
+                <span class="field-label field-label-inline">Save Copy</span>
               </div>
               <div class="suffix-group">
                 <span class="field-label field-label-inline">Suffix</span>
@@ -109,23 +102,22 @@
             </div>
           </div>
 
-          <div class="row">
-            <span class="field-label">Folder 1</span>
+          <div class="row row-folder">
+            <span class="field-label field-label-folder">Folder</span>
             <button class="path-btn empty" id="displaySaveFolder1">—</button>
             <button class="btn-folder-action" id="btnSaveFolder1">Browse</button>
           </div>
 
           <div class="row row-disclosure">
-            <span class="field-label"></span>
-            <button class="btn-disclosure" id="btnSaveFolder2Disclosure" type="button" aria-expanded="false" aria-controls="saveFolder2Content">
-              <span class="icon-mask icon-chevron-right" aria-hidden="true"></span>
-              <span>Folder 2</span>
-            </button>
+            <div class="btn-disclosure" id="btnSaveFolder2Disclosure" role="button" tabindex="0" aria-expanded="false" aria-controls="saveFolder2Content">
+              <span class="accordion-icon" aria-hidden="true"></span>
+              <span class="accordion-label">Folder 2</span>
+            </div>
           </div>
 
           <div class="disclosure-content" id="saveFolder2Content" hidden>
-            <div class="row">
-              <span class="field-label">Folder 2</span>
+            <div class="row row-folder">
+              <span class="field-label field-label-folder">Folder 2</span>
               <button class="path-btn empty" id="displaySaveFolder2">—</button>
               <button class="btn-folder-action" id="btnSaveFolder2">Browse</button>
             </div>
@@ -139,20 +131,23 @@
 
         <section class="panel-section panel-section-log" id="section-log">
           <div class="section-head log-header">
-            <button class="log-toggle" id="btnToggleLog" type="button" aria-expanded="false" aria-controls="logContent">
-              <span class="icon-mask icon-chevron-right" aria-hidden="true"></span>
-              <span class="section-label section-label-inline">Log</span>
-              <span class="log-inline-meta">
-                <span class="log-inline-summary" id="logSummaryInline">완료 0 · SaveEr 0 · Skipped 0</span>
-                <span class="log-inline-state" id="logStateInline">대기 중</span>
-              </span>
-            </button>
+            <div class="log-toggle" id="btnToggleLog" role="button" tabindex="0" aria-expanded="false" aria-controls="logContent">
+              <span class="accordion-icon" aria-hidden="true"></span>
+              <span class="section-label section-label-inline accordion-label">Log</span>
+            </div>
             <div class="log-header-actions">
               <button class="btn-secondary btn-copy-log" id="btnCopyLog" type="button">Copy all</button>
             </div>
           </div>
 
           <div class="log-content" id="logContent" hidden>
+            <div class="log-summary-row">
+              <div class="log-summary-stack">
+                <span class="log-inline-summary" id="logSummaryInline">완료 0 · SaveEr 0 · Skipped 0</span>
+                <span class="log-inline-state" id="logStateInline">대기 중</span>
+              </div>
+            </div>
+
             <div class="progress-wrap">
               <div class="progress-info">
                 <span class="progress-file" id="progressFile">—</span>

@@ -85,21 +85,37 @@ function createActionPresetPart({
     } catch (_) {}
   }
 
+  function toSafeArray(value) {
+    if (!value) return [];
+    if (Array.isArray(value)) return value.slice();
+    try {
+      return Array.from(value);
+    } catch (_) {
+      const length = Number(value && value.length);
+      if (Number.isFinite(length) && length >= 0) {
+        const next = [];
+        for (let i = 0; i < length; i += 1) {
+          next.push(value[i]);
+        }
+        return next;
+      }
+      return [];
+    }
+  }
+
   function readCatalog() {
     if (!isUxpRuntime) return PREVIEW_ACTION_CATALOG;
 
     const photoshop = typeof require === 'function' ? require('photoshop') : null;
     const liveApp = photoshop && photoshop.app ? photoshop.app : app;
-    const sets = Array.isArray(liveApp && liveApp.actionTree) ? liveApp.actionTree : [];
+    const sets = toSafeArray(liveApp && liveApp.actionTree);
 
     return sets
       .filter(setItem => setItem && typeof setItem.name === 'string' && setItem.name.trim())
       .map(setItem => {
-        const names = Array.isArray(setItem.actions)
-          ? setItem.actions
-              .filter(action => action && typeof action.name === 'string' && action.name.trim())
-              .map(action => action.name.trim())
-          : [];
+        const names = toSafeArray(setItem && setItem.actions)
+          .filter(action => action && typeof action.name === 'string' && action.name.trim())
+          .map(action => action.name.trim());
 
         return {
           name: setItem.name.trim(),
@@ -198,12 +214,7 @@ function createActionPresetPart({
       checkbox.className = 'action-checkbox';
       checkbox.checked = slot.enabled !== false;
       checkbox.addEventListener('change', () => setSlotEnabled(index, checkbox.checked));
-
-      const num = document.createElement('span');
-      num.className = 'action-num';
-      num.textContent = index + 1;
-
-      toggleCell.append(checkbox, num);
+      toggleCell.append(checkbox);
 
       const fields = document.createElement('div');
       fields.className = 'action-fields';
@@ -255,8 +266,7 @@ function createActionPresetPart({
       removeBtn.type = 'button';
       removeBtn.className = 'btn-icon btn-remove-action';
       removeBtn.setAttribute('aria-label', (index + 1) + '번 액션 제거');
-      removeBtn.innerHTML = '<span class="icon-mask icon-close" aria-hidden="true"></span>';
-      removeBtn.style.visibility = state.slots.length > 1 ? 'visible' : 'hidden';
+      removeBtn.title = '액션 제거';
       removeBtn.addEventListener('click', () => removeSlot(index));
 
       row.append(toggleCell, fields, removeBtn);
