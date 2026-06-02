@@ -1,0 +1,5 @@
+.DS_Store
+*.zip
+
+compare_tmp/
+review_tmp/
