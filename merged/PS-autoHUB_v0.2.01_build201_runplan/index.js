@@ -25,7 +25,7 @@ let LOG_STATUS = {
   CANCELLED: 'CANCELLED',
   NO_SAVE_TARGET: 'NO_SAVE_TARGET'
 };
-const BUILD_TOKEN = 'v0.2.01-build201';
+const BUILD_TOKEN = 'v0.2.01-build201-runplan';
 if (typeof console !== 'undefined' && console.log) {
   try { console.log('[PS-autoHUB] booting build', BUILD_TOKEN); } catch (_) {}
 }
