@@ -220,8 +220,25 @@ async function runBatch(config = {}, callbacks = {}) {
 
   const {
     onPreflight = () => {}, onProgress = () => {}, onFileLog = () => {},
-    onComplete = () => {}, onDebugLog = () => {}, isCancelled = () => false, setCancelled = () => {}
+    onComplete = () => {}, onDebugLog = () => {}, shouldCollectLogs = () => true,
+    isCancelled = () => false, setCancelled = () => {}
   } = callbacks;
+
+  const canCollectLogs = () => {
+    try { return !!shouldCollectLogs(); } catch (_) { return false; }
+  };
+  const emitFileLog = (factory) => {
+    if (!canCollectLogs()) return;
+    onFileLog(typeof factory === 'function' ? factory() : factory);
+  };
+  const emitDebugLog = (factory) => {
+    if (!canCollectLogs()) return;
+    onDebugLog(typeof factory === 'function' ? factory() : factory);
+  };
+  const emitProgress = (current, total, fileName) => {
+    if (!canCollectLogs()) return;
+    onProgress(current, total, fileName);
+  };
 
   let plan;
   try {
@@ -237,7 +254,7 @@ async function runBatch(config = {}, callbacks = {}) {
   let fileList = plan.fileList.slice();
   if (testLimit > 0 && fileList.length > testLimit) {
     fileList = fileList.slice(0, testLimit);
-    onDebugLog(`[Test] truncated fileList to ${fileList.length}`);
+    emitDebugLog(() => `[Test] truncated fileList to ${fileList.length}`);
   }
 
   const total = fileList.length;
@@ -256,10 +273,10 @@ async function runBatch(config = {}, callbacks = {}) {
 
   for (let i = 0; i < total; i++) {
     if (isCancelled()) {
-      summary.cancelled = true;
+    summary.cancelled = true;
       for (let j = i; j < total; j++) {
         const e = isPairedMode ? fileList[j].primary : fileList[j];
-        onFileLog({ index: j, fileName: e.name, status: LOG_STATUS.CANCELLED, detail: '' });
+        emitFileLog(() => ({ index: j, fileName: e.name, status: LOG_STATUS.CANCELLED, detail: '' }));
       }
       break;
     }
@@ -270,7 +287,7 @@ async function runBatch(config = {}, callbacks = {}) {
     const secondaryBaseName = secondary ? secondary.name.replace(/\.[^.]+$/, '') : '';
     const beforeDocIds = listCurrentDocIds();
 
-    onProgress(i + 1, total, primary.name);
+    emitProgress(i + 1, total, primary.name);
 
     let actionResult;
     try {
@@ -293,7 +310,7 @@ async function runBatch(config = {}, callbacks = {}) {
     const afterDocIds = listCurrentDocIds();
     const resultDocIds = diffDocIds(afterDocIds, beforeDocIds);
     const job = { primary, secondary, primaryBaseName, secondaryBaseName, docIds: actionResult.docIds || { primary: null, secondary: null } };
-    onDebugLog(`[ActionResult] success=${String(actionResult.success)} stopBatch=${String(actionResult.stopBatch)} status=${actionResult.status} stage=${actionResult.errorStage || '-'} fatal=${String(actionResult.fatalActionStop)} userStop=${String(actionResult.userStop)} docsAfter=${afterDocIds.length}`);
+    emitDebugLog(() => `[ActionResult] success=${String(actionResult.success)} stopBatch=${String(actionResult.stopBatch)} status=${actionResult.status} stage=${actionResult.errorStage || '-'} fatal=${String(actionResult.fatalActionStop)} userStop=${String(actionResult.userStop)} docsAfter=${afterDocIds.length}`);
 
     const shouldStopBatchAfterAction =
       actionResult.success !== true ||
@@ -304,25 +321,25 @@ async function runBatch(config = {}, callbacks = {}) {
     if (shouldStopBatchAfterAction) {
       summary.cancelled = true;
       summary.fatalActionStop = !!actionResult.fatalActionStop || actionResult.errorStage === 'action';
-      onFileLog({ index: i, fileName: primary.name, status: LOG_STATUS.ERROR, detail: actionResult.error || '액션 실행 중단' });
+      emitFileLog(() => ({ index: i, fileName: primary.name, status: LOG_STATUS.ERROR, detail: actionResult.error || '액션 실행 중단' }));
       setCancelled(true);
-      onDebugLog('[ForceStop] action-stage stop detected; stop batch immediately and keep current Photoshop document state');
+      emitDebugLog('[ForceStop] action-stage stop detected; stop batch immediately and keep current Photoshop document state');
       for (let j = i + 1; j < total; j++) {
         const e = isPairedMode ? fileList[j].primary : fileList[j];
-        onFileLog({ index: j, fileName: e.name, status: LOG_STATUS.CANCELLED, detail: '' });
+        emitFileLog(() => ({ index: j, fileName: e.name, status: LOG_STATUS.CANCELLED, detail: '' }));
       }
       break;
     }
 
     if (actionResult.status === LOG_STATUS.ERROR) {
       summary.skipped++;
-      onFileLog({ index: i, fileName: primary.name, status: LOG_STATUS.ERROR, detail: actionResult.error });
+      emitFileLog(() => ({ index: i, fileName: primary.name, status: LOG_STATUS.ERROR, detail: actionResult.error }));
       try { await closeDocsByIds(resultDocIds); } catch (_) {}
       continue;
     }
 
     if (resultDocIds.length === 0) {
-      onFileLog({ index: i, fileName: primary.name, status: LOG_STATUS.NO_SAVE_TARGET, detail: '열려 있는 결과 문서 없음' });
+      emitFileLog(() => ({ index: i, fileName: primary.name, status: LOG_STATUS.NO_SAVE_TARGET, detail: '열려 있는 결과 문서 없음' }));
       continue;
     }
 
@@ -338,9 +355,9 @@ async function runBatch(config = {}, callbacks = {}) {
 
       const rootFolder = await resolveExecutionRootFolder(target, { folder1, folder2, saveFolder1, saveFolder2, mode, saveCopy }, plan, executionMode, runContext);
       const relativeDir = subfolders ? target.relativeDir : '';
-      onDebugLog(`[Subfolders][Relative] kind=${target.kind} file=${target.sourceEntry ? target.sourceEntry.name : '-'} relative=${relativeDir || '.'}`);
+      emitDebugLog(() => `[Subfolders][Relative] kind=${target.kind} file=${target.sourceEntry ? target.sourceEntry.name : '-'} relative=${relativeDir || '.'}`);
       const targetFolder = await ensureRelativeFolderCached(rootFolder, relativeDir, runContext);
-      onDebugLog(`[Subfolders][SavePath] desiredRoot=${rootFolder ? rootFolder.name : '-'} relative=${relativeDir || '.'} targetFolder=${targetFolder ? targetFolder.name : '-'}`);
+      emitDebugLog(() => `[Subfolders][SavePath] desiredRoot=${rootFolder ? rootFolder.name : '-'} relative=${relativeDir || '.'} targetFolder=${targetFolder ? targetFolder.name : '-'}`);
       const desiredPsdName = buildFileName(target.baseName, 'psd', {
         suffix,
         isD2: target.isD2,
@@ -360,7 +377,7 @@ async function runBatch(config = {}, callbacks = {}) {
         fileEntry = await reserveNumberedFile(targetFolder, desiredPsdName, { usedNames });
       } catch (e) {
         summary.saveEr++;
-        onFileLog({ index: i, fileName: desiredPsdName, status: LOG_STATUS.ERROR, detail: '[entry 준비 실패] ' + e.message });
+        emitFileLog(() => ({ index: i, fileName: desiredPsdName, status: LOG_STATUS.ERROR, detail: '[entry 준비 실패] ' + e.message }));
         continue;
       }
 
@@ -402,7 +419,7 @@ async function runBatch(config = {}, callbacks = {}) {
       try {
         await closeDocsByIds(resultDocIds);
       } catch (e) {
-        onDebugLog('[Close][Error] ' + e.message);
+        emitDebugLog(() => '[Close][Error] ' + e.message);
       }
     }
 
@@ -411,13 +428,13 @@ async function runBatch(config = {}, callbacks = {}) {
       const savedName = saveResult.savedFileName || desiredPsdName;
       if (saveResult.status === LOG_STATUS.PROCESSED) {
         summary.processed++;
-        onFileLog({ index: i, fileName: savedName, status: LOG_STATUS.PROCESSED, detail: '→ ' + savedName });
+        emitFileLog(() => ({ index: i, fileName: savedName, status: LOG_STATUS.PROCESSED, detail: '→ ' + savedName }));
       } else if (saveResult.status === LOG_STATUS.SAVE_ER) {
         summary.saveEr++;
-        onFileLog({ index: i, fileName: savedName, status: LOG_STATUS.SAVE_ER, detail: saveResult.error || 'PSB fallback 저장' });
+        emitFileLog(() => ({ index: i, fileName: savedName, status: LOG_STATUS.SAVE_ER, detail: saveResult.error || 'PSB fallback 저장' }));
       } else {
         summary.saveEr++;
-        onFileLog({ index: i, fileName: savedName, status: LOG_STATUS.ERROR, detail: saveResult.error || '저장 실패' });
+        emitFileLog(() => ({ index: i, fileName: savedName, status: LOG_STATUS.ERROR, detail: saveResult.error || '저장 실패' }));
       }
     }
   }

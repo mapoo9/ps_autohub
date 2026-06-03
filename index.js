@@ -60,6 +60,10 @@ const state = {
 
 const $ = (id) => document.getElementById(id);
 
+function isDebugEnabled() {
+  return !!state.debugMode;
+}
+
 function syncSelectWidth(selectEl, { min = 84, max = 170, extra = 34 } = {}) {
   if (!selectEl) return;
   const text = selectEl.options[selectEl.selectedIndex]?.textContent || '';
@@ -101,7 +105,7 @@ const actionPresetPart = createActionPresetPart({
   app: isUxpRuntime ? require('photoshop').app : { actionTree: [] },
   isUxpRuntime,
   storage: typeof localStorage !== 'undefined' ? localStorage : null,
-  isDebugEnabled: () => state.debugMode,
+  isDebugEnabled,
   onChange: () => {
     invalidateRunPlan();
     updateDebugPanel();
@@ -160,6 +164,41 @@ function invalidateRunPlan() {
   state.lastRunPlan = null;
 }
 
+function clearLogBuffers() {
+  state.logEntries = [];
+  const logBody = $('logBody');
+  if (logBody) logBody.innerHTML = '';
+  resetCopyLogButton();
+  syncCopyLogButton();
+}
+
+function setDebugMode(enabled) {
+  state.debugMode = !!enabled;
+  document.body.classList.toggle('show-log-panel', state.debugMode);
+
+  if (state.debugMode) {
+    setLogExpanded(true);
+    updateDebugPanel();
+    syncCopyLogButton();
+  } else {
+    setLogExpanded(false);
+    clearLogBuffers();
+  }
+
+  return state.debugMode;
+}
+
+function installDebugApi() {
+  if (typeof window === 'undefined') return;
+  window.AutoHUBDebug = {
+    setEnabled: setDebugMode,
+    enable: () => setDebugMode(true),
+    disable: () => setDebugMode(false),
+    isEnabled: isDebugEnabled,
+    getLogText: buildLogText
+  };
+}
+
 function setFooterState(label) {
   $('footerState').textContent = label;
   $('logStateInline').textContent = label;
@@ -182,6 +221,7 @@ function resetCopyLogButton() {
 }
 
 function updateLogUI(entry) {
+  if (!isDebugEnabled()) return;
   state.logEntries.push(entry);
   const { fileName, status, detail } = entry;
   const isDebug = entry.kind === 'DEBUG' || status === 'DEBUG';
@@ -232,6 +272,7 @@ function updateLogUI(entry) {
 }
 
 function updateProgress(current, total, fileName) {
+  if (!isDebugEnabled()) return;
   $('progressFile').textContent = fileName;
   $('progressCount').textContent = current + ' / ' + total;
   const percent = total > 0 ? Math.round((current / total) * 100) : 0;
@@ -239,6 +280,7 @@ function updateProgress(current, total, fileName) {
 }
 
 function updateFooter(processed, saveEr, skipped, label) {
+  if (!isDebugEnabled()) return;
   const summaryText = '완료 ' + processed + ' · SaveEr ' + saveEr + ' · Skipped ' + skipped;
   $('footerSummary').textContent = summaryText;
   $('logSummaryInline').textContent = summaryText;
@@ -246,6 +288,7 @@ function updateFooter(processed, saveEr, skipped, label) {
 }
 
 function renderPreflightMessages(result) {
+  if (!isDebugEnabled()) return;
   const logBody = $('logBody');
   logBody.innerHTML = '';
   state.logEntries = [];
@@ -280,6 +323,7 @@ function renderPreflightMessages(result) {
 }
 
 function buildLogText() {
+  if (!isDebugEnabled()) return '';
   return state.logEntries.map((entry) => {
     if (entry.kind === 'DEBUG') return '[DEBUG] ' + (entry.detail || '');
     if (entry.kind === 'PRECHECK') return '[' + String(entry.level || 'info').toUpperCase() + '] ' + (entry.detail || '');
@@ -330,47 +374,53 @@ function makeRunCallbacks(summary) {
   return {
     onPreflight: (result) => {
       if (!result.ok) {
-        renderPreflightMessages(result);
+        if (isDebugEnabled()) renderPreflightMessages(result);
         if (Array.isArray(result.errors) && result.errors.length) {
           showAlert('Warning', result.errors.join('\n'));
         }
       }
     },
     onProgress: (current, total, fileName) => {
+      if (!isDebugEnabled()) return;
       updateProgress(current, total, fileName);
       updateFooter(summary.processed, summary.saveEr, summary.skipped, '실행 중...');
     },
     onFileLog: (entry) => {
-      updateLogUI(entry);
       if (entry.status === LOG_STATUS.PROCESSED) summary.processed++;
       else if (entry.status === LOG_STATUS.SAVE_ER) summary.saveEr++;
       else if (entry.status === LOG_STATUS.SKIPPED || entry.status === LOG_STATUS.ERROR) summary.skipped++;
+      if (!isDebugEnabled()) return;
+      updateLogUI(entry);
       updateFooter(summary.processed, summary.saveEr, summary.skipped, '실행 중...');
     },
     onComplete: (result) => {
-      updateFooter(summary.processed, summary.saveEr, summary.skipped, result.cancelled ? '(중단됨)' : '(완료)');
-      $('progressFill').style.width = '100%';
-      if (result.fatalActionStop) {
+      const finalResult = result || {};
+      if (isDebugEnabled()) {
+        const finalSummary = finalResult || summary;
+        updateFooter(finalSummary.processed || 0, finalSummary.saveEr || 0, finalSummary.skipped || 0, finalResult.cancelled ? '(중단됨)' : '(완료)');
+        $('progressFill').style.width = '100%';
+      }
+      if (finalResult.fatalActionStop) {
         showAlert('Action Stopped', 'An action stopped due to a Photoshop error. The batch run was stopped to prevent additional errors.');
       }
     },
     onDebugLog: (message) => {
-      if (state.debugMode) updateLogUI({ kind: 'DEBUG', fileName: '[DEBUG]', status: 'DEBUG', detail: message });
+      if (isDebugEnabled()) updateLogUI({ kind: 'DEBUG', fileName: '[DEBUG]', status: 'DEBUG', detail: message });
     },
+    shouldCollectLogs: isDebugEnabled,
     isCancelled: () => state.cancelRequested,
     setCancelled: (value) => { state.cancelRequested = value; }
   };
 }
 
 function prepareRunUI() {
-  state.logEntries = [];
-  $('logBody').innerHTML = '';
-  $('progressFile').textContent = '—';
-  $('progressCount').textContent = '0 / 0';
-  $('progressFill').style.width = '0%';
-  resetCopyLogButton();
-  updateFooter(0, 0, 0, '준비 중...');
-  syncCopyLogButton();
+  clearLogBuffers();
+  if (isDebugEnabled()) {
+    $('progressFile').textContent = '—';
+    $('progressCount').textContent = '0 / 0';
+    $('progressFill').style.width = '0%';
+    updateFooter(0, 0, 0, '준비 중...');
+  }
 
   state.running = true;
   state.cancelRequested = false;
@@ -456,13 +506,13 @@ function handleCancel() {
   state.cancelRequested = true;
   $('btnCancel').disabled = true;
   if (!isUxpRuntime) {
-    setFooterState('Preview cancelled');
+    if (isDebugEnabled()) setFooterState('Preview cancelled');
     return;
   }
-  if (state.debugMode) {
+  if (isDebugEnabled()) {
     updateLogUI({ kind: 'DEBUG', fileName: '[DEBUG]', status: 'DEBUG', detail: '[ForceStop] 사용자 Cancel - 현재 문서 상태 유지, 후속 배치만 중단' });
+    setFooterState('중단 요청됨...');
   }
-  setFooterState('중단 요청됨...');
 }
 
 async function initHub() {
@@ -484,8 +534,10 @@ async function initHub() {
     $('btnRun').textContent = 'Preview Run';
     $('btnTest').textContent = '1 test (preview)';
     $('btnCancel').textContent = 'Stop';
-    $('progressFile').textContent = '브라우저 프리뷰 모드';
-    setFooterState('Photoshop 없이 디자인 확인 가능');
+    if (isDebugEnabled()) {
+      $('progressFile').textContent = '브라우저 프리뷰 모드';
+      setFooterState('Photoshop 없이 디자인 확인 가능');
+    }
   }
 
   inputPart.init({
@@ -553,8 +605,8 @@ async function initHub() {
     }
   });
 
-  setLogExpanded(false);
-  syncCopyLogButton();
+  installDebugApi();
+  setDebugMode(false);
   updateDebugPanel();
 
   state.hubInitialized = true;

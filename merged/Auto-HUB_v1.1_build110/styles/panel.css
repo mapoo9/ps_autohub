@@ -944,7 +944,12 @@ body.preview-mode .preview-banner {
 
 /* ===== Log Drawer ===== */
 .panel-section-log {
+  display: none !important;
   padding-top: 4px;
+}
+
+body.show-log-panel .panel-section-log {
+  display: block !important;
 }
 
 .log-header {
