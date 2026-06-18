@@ -1,0 +1,39 @@
+{
+  "manifestVersion": 6,
+  "id": "com.psautohub.panel",
+  "name": "Auto-HUB",
+  "version": "1.1.1",
+  "main": "index.html",
+  "host": [
+    {
+      "app": "PS",
+      "minVersion": "26.0"
+    }
+  ],
+  "entrypoints": [
+    {
+      "type": "panel",
+      "id": "batchPanel",
+      "label": {
+        "default": "Auto-HUB"
+      },
+      "minimumSize": {
+        "width": 260,
+        "height": 120
+      },
+      "maximumSize": {
+        "width": 600,
+        "height": 1200
+      },
+      "preferredDockedSize": {
+        "width": 280,
+        "height": 700
+      }
+    }
+  ],
+  "requiredPermissions": {
+    "clipboard": "readAndWrite",
+    "localFileSystem": "fullAccess",
+    "allowCodeGenerationFromStrings": true
+  }
+}

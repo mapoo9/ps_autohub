@@ -23,9 +23,9 @@
 
 ## v1.1 contents
 
-- RunPlan cache and timestamp output folder flow.
-- 1test saves into fixed `1test` root plus timestamp child folder.
-- Run saves into timestamp folders when Save Folder or Save Copy is enabled.
+- RunPlan cache and numbered output folder flow.
+- 1test saves into fixed `1test` root plus numbered child folder.
+- Run saves into numbered folders when Save Folder or Save Copy is enabled.
 - Duplicate output names use `_000`, `_001`, `_002`.
 - PSD save failure keeps PSB fallback with the same numbering policy.
 - Action modal remains action-only; post-action modal handles save and close together.

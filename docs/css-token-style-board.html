@@ -1,0 +1,539 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Auto-HUB CSS Token Style Board</title>
+  <link rel="stylesheet" href="../styles/panel.css" />
+  <style>
+    body {
+      min-height: 100vh;
+      overflow: auto;
+      line-height: 1.35;
+    }
+
+    .token-board {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 24px 0 36px;
+    }
+
+    .board-header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: var(--space-5);
+      align-items: end;
+      padding: 0 0 var(--space-5);
+      border-bottom: 1px solid var(--line-on-dark-soft);
+    }
+
+    .board-kicker {
+      display: block;
+      color: var(--text-faint);
+      font-size: var(--font-meta);
+      font-weight: 700;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .board-title {
+      margin: 4px 0 0;
+      color: var(--text-strong);
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .board-meta {
+      color: var(--text-muted);
+      font-size: var(--font-small);
+      text-align: right;
+    }
+
+    .board-grid {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      column-gap: 18px;
+      row-gap: 18px;
+      margin-top: 14px;
+    }
+
+    .board-section {
+      min-width: 0;
+      padding: 12px 0 2px;
+      border: 0;
+      border-top: 1px solid var(--line-on-dark-soft);
+      border-radius: 0;
+      background: transparent;
+    }
+
+    .span-12 {
+      grid-column: span 12;
+    }
+
+    .span-7 {
+      grid-column: span 7;
+    }
+
+    .span-6 {
+      grid-column: span 6;
+    }
+
+    .span-5 {
+      grid-column: span 5;
+    }
+
+    .section-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-2);
+      margin-bottom: 10px;
+    }
+
+    .section-title-row h2 {
+      margin: 0;
+      color: var(--text-label);
+      font-size: var(--font-title);
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .section-note {
+      color: var(--text-faint);
+      font-size: var(--font-meta);
+      white-space: nowrap;
+    }
+
+    .swatch-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .swatch {
+      min-width: 0;
+      overflow: hidden;
+      border: 1px solid var(--line-on-dark);
+      border-radius: var(--radius-m);
+      background: var(--surface-app-deep);
+    }
+
+    .swatch-chip {
+      height: 54px;
+      border-bottom: 1px solid var(--line-on-dark-soft);
+      background: var(--swatch);
+    }
+
+    .swatch-body {
+      display: grid;
+      gap: 3px;
+      padding: 7px;
+    }
+
+    .token-name {
+      overflow: hidden;
+      color: var(--text-default);
+      font-size: var(--font-label);
+      font-weight: 700;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .token-value {
+      overflow: hidden;
+      color: var(--text-faint);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: var(--font-meta);
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .type-scale {
+      display: grid;
+      gap: 8px;
+    }
+
+    .type-row {
+      display: grid;
+      grid-template-columns: 58px minmax(0, 1fr);
+      gap: 10px;
+      align-items: baseline;
+      padding: 7px 8px;
+      border: 1px solid var(--line-on-dark-soft);
+      border-radius: var(--radius-m);
+      background: var(--surface-app-deep);
+    }
+
+    .type-size {
+      color: var(--text-faint);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: var(--font-meta);
+    }
+
+    .sample-stack {
+      display: grid;
+      gap: 8px;
+    }
+
+    .button-row,
+    .control-row,
+    .state-row,
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .button-sample,
+    .button-sample:disabled {
+      min-height: var(--control-h);
+      min-width: 68px;
+      padding: 0 8px;
+      border-radius: var(--radius-s);
+      font-size: var(--font-body);
+      line-height: 1;
+    }
+
+    .button-sample.is-hover {
+      border-color: var(--line-strong);
+      background: var(--button-neutral-bg-hover);
+      color: var(--text-strong);
+    }
+
+    .btn-run.button-sample.is-hover {
+      background: var(--run-strong);
+    }
+
+    .btn-test.button-sample.is-hover {
+      background: var(--button-test-bg-hover);
+    }
+
+    .btn-cancel.button-sample.is-hover {
+      background: var(--button-cancel-bg-hover);
+    }
+
+    .button-label {
+      flex: 0 0 100%;
+      color: var(--text-faint);
+      font-size: var(--font-meta);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .path-btn {
+      max-width: 240px;
+    }
+
+    .input-suffix {
+      flex: 0 0 74px !important;
+      width: 74px !important;
+      min-width: 74px !important;
+      max-width: 74px !important;
+      text-align: left;
+    }
+
+    .state-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: var(--control-h);
+      padding: 0 8px;
+      border: 1px solid var(--line-subtle);
+      border-radius: var(--radius-s);
+      background: var(--surface-app-deep);
+      color: var(--text-muted);
+      font-size: var(--font-small);
+    }
+
+    .mock-panel {
+      width: 280px;
+      max-width: 100%;
+      overflow: hidden;
+      border: 0;
+      border-radius: 0;
+      background: var(--surface-app);
+    }
+
+    .mock-panel .run-area {
+      padding: 5px var(--panel-pad-x);
+    }
+
+    .mock-panel .panel-section {
+      padding-bottom: 8px;
+    }
+
+    .mock-action-line {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 6px;
+      align-items: center;
+      padding: 3px 0;
+      border-bottom: 1px solid var(--line-on-dark-soft);
+    }
+
+    .mock-action-line:last-child {
+      border-bottom: 0;
+    }
+
+    .preview-lane {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .picker-demo {
+      position: relative;
+      display: grid;
+      width: 210px;
+      max-width: 100%;
+    }
+
+    .token-board .cp-trigger {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    .token-board .cp-label {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    .token-board .cp-chevron {
+      position: static;
+      flex: 0 0 auto;
+      transform: none;
+    }
+
+    .token-board .cp-popup {
+      position: static;
+      z-index: 1;
+      max-height: none;
+      margin-top: 6px;
+    }
+
+    .alert-preview {
+      display: grid;
+      place-items: center;
+      min-height: 178px;
+      padding: 14px;
+      border: 0;
+      border-radius: var(--radius-m);
+      background: var(--surface-app-deep);
+    }
+
+    .alert-preview .alert-box {
+      width: min(320px, 100%);
+    }
+
+    @media (max-width: 860px) {
+      .board-header,
+      .preview-lane {
+        grid-template-columns: 1fr;
+      }
+
+      .board-meta {
+        text-align: left;
+      }
+
+      .span-7,
+      .span-6,
+      .span-5 {
+        grid-column: span 12;
+      }
+
+      .swatch-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="token-board">
+    <header class="board-header">
+      <div>
+        <span class="board-kicker">Auto-HUB / CSS Token Style Board</span>
+        <h1 class="board-title">Panel tokens at a glance</h1>
+      </div>
+      <div class="board-meta">Source: <code>styles/panel.css</code><br />Rendered with live CSS variables</div>
+    </header>
+
+    <div class="board-grid">
+      <section class="board-section span-7">
+        <div class="section-title-row">
+          <h2>Color Tokens</h2>
+          <span class="section-note">calm points / saturated run only</span>
+        </div>
+        <div class="swatch-grid">
+          <div class="swatch" data-token="--surface-app"><div class="swatch-chip"></div><div class="swatch-body"><span class="token-name">--surface-app</span><span class="token-value"></span></div></div>
+          <div class="swatch" data-token="--surface-app-deep"><div class="swatch-chip"></div><div class="swatch-body"><span class="token-name">--surface-app-deep</span><span class="token-value"></span></div></div>
+          <div class="swatch" data-token="--surface-base"><div class="swatch-chip"></div><div class="swatch-body"><span class="token-name">--surface-base</span><span class="token-value"></span></div></div>
+          <div class="swatch" data-token="--surface-input"><div class="swatch-chip"></div><div class="swatch-body"><span class="token-name">--surface-input</span><span class="token-value"></span></div></div>
+          <div class="swatch" data-token="--line-subtle"><div class="swatch-chip"></div><div class="swatch-body"><span class="token-name">--line-subtle</span><span class="token-value"></span></div></div>
+          <div class="swatch" data-token="--line-control"><div class="swatch-chip"></div><div class="swatch-body"><span class="token-name">--line-control</span><span class="token-value"></span></div></div>
+          <div class="swatch" data-token="--text-default"><div class="swatch-chip"></div><div class="swatch-body"><span class="token-name">--text-default</span><span class="token-value"></span></div></div>
+          <div class="swatch" data-token="--accent"><div class="swatch-chip"></div><div class="swatch-body"><span class="token-name">--accent</span><span class="token-value"></span></div></div>
+          <div class="swatch" data-token="--accent-strong"><div class="swatch-chip"></div><div class="swatch-body"><span class="token-name">--accent-strong</span><span class="token-value"></span></div></div>
+          <div class="swatch" data-token="--run-main"><div class="swatch-chip"></div><div class="swatch-body"><span class="token-name">--run-main</span><span class="token-value"></span></div></div>
+          <div class="swatch" data-token="--run-strong"><div class="swatch-chip"></div><div class="swatch-body"><span class="token-name">--run-strong</span><span class="token-value"></span></div></div>
+          <div class="swatch" data-token="--success"><div class="swatch-chip"></div><div class="swatch-body"><span class="token-name">--success</span><span class="token-value"></span></div></div>
+          <div class="swatch" data-token="--warning"><div class="swatch-chip"></div><div class="swatch-body"><span class="token-name">--warning</span><span class="token-value"></span></div></div>
+          <div class="swatch" data-token="--danger-soft"><div class="swatch-chip"></div><div class="swatch-body"><span class="token-name">--danger-soft</span><span class="token-value"></span></div></div>
+          <div class="swatch" data-token="--reset-text"><div class="swatch-chip"></div><div class="swatch-body"><span class="token-name">--reset-text</span><span class="token-value"></span></div></div>
+        </div>
+      </section>
+
+      <section class="board-section span-5">
+        <div class="section-title-row">
+          <h2>Type Scale</h2>
+          <span class="section-note">9px-13px</span>
+        </div>
+        <div class="type-scale">
+          <div class="type-row"><span class="type-size">9px</span><span style="font-size: var(--font-meta); color: var(--text-faint);">metadata / tiny status / AUTO-HUB</span></div>
+          <div class="type-row"><span class="type-size">10px</span><span style="font-size: var(--font-label); color: var(--text-muted);">field label / compact badge</span></div>
+          <div class="type-row"><span class="type-size">11px</span><span style="font-size: var(--font-small); color: var(--text-default);">small button and footer summary</span></div>
+          <div class="type-row"><span class="type-size">12px</span><span style="font-size: var(--font-body); color: var(--text-default);">default panel body text</span></div>
+          <div class="type-row"><span class="type-size">13px</span><span style="font-size: var(--font-title); color: var(--text-label); font-weight: 700;">section title / panel label</span></div>
+        </div>
+      </section>
+
+      <section class="board-section span-6">
+        <div class="section-title-row">
+          <h2>Buttons</h2>
+          <span class="section-note">normal / hover / disabled</span>
+        </div>
+        <div class="sample-stack">
+          <div class="button-row">
+            <span class="button-label">normal</span>
+            <button class="btn-cancel button-sample">Cancel</button>
+            <button class="btn-test button-sample" type="button">1 test</button>
+            <button class="btn-run button-sample">Run</button>
+            <button class="btn-reset-all button-sample" type="button">Reset All</button>
+          </div>
+          <div class="button-row">
+            <span class="button-label">hover preview</span>
+            <button class="btn-cancel button-sample is-hover">Cancel</button>
+            <button class="btn-test button-sample is-hover" type="button">1 test</button>
+            <button class="btn-run button-sample is-hover">Run</button>
+            <button class="btn-reset-all button-sample" type="button" style="background: var(--reset-bg-hover); color: var(--reset-text-hover);">Reset All</button>
+          </div>
+          <div class="button-row">
+            <span class="button-label">disabled</span>
+            <button class="btn-cancel button-sample" disabled>Cancel</button>
+            <button class="btn-test button-sample" type="button" disabled>1 test</button>
+            <button class="btn-run button-sample" disabled>Run</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="board-section span-6">
+        <div class="section-title-row">
+          <h2>Inputs & States</h2>
+          <span class="section-note">controls / checkbox / active</span>
+        </div>
+        <div class="sample-stack">
+          <div class="control-row">
+            <select class="select-field" style="width: 132px;"><option>name ascending</option></select>
+            <button class="path-btn has-path"><span class="path-btn-text">/source/character-set</span></button>
+            <input class="input-suffix" value="_copy" />
+          </div>
+          <div class="state-row">
+            <span class="state-chip"><input class="toggle" type="checkbox" /> unchecked</span>
+            <span class="state-chip"><input class="toggle" type="checkbox" checked /> checked</span>
+            <button class="btn-cross active" id="btnCrossOrder" type="button">1 -> 2</button>
+          </div>
+          <div class="badge-row">
+            <span class="log-status s-processed">PROCESSED</span>
+            <span class="log-status s-error">ERROR</span>
+            <span class="log-status s-ame">WARNING</span>
+            <span class="log-status s-skipped">SKIPPED</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="board-section span-12">
+        <div class="section-title-row">
+          <h2>Picker, Alert, Panel Preview</h2>
+          <span class="section-note">component snapshots</span>
+        </div>
+        <div class="preview-lane">
+          <div class="sample-stack">
+            <div class="picker-demo custom-picker cp-open">
+              <button class="cp-trigger" type="button">
+                <span class="cp-label">Export preset</span>
+                <span class="cp-chevron">⌄</span>
+              </button>
+              <div class="cp-popup">
+                <div class="cp-item">Save PNG copy</div>
+                <div class="cp-item cp-selected">Save JPG copy</div>
+                <div class="cp-item cp-focus">Save TIFF copy</div>
+              </div>
+            </div>
+
+            <div class="alert-preview">
+              <div class="alert-box">
+                <div class="alert-title">Action List Error</div>
+                <div class="alert-message">Failed to read the Photoshop action list.</div>
+                <div class="alert-actions">
+                  <button class="btn-alert-ok" type="button">OK</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mock-panel">
+            <div class="panel-top-line" aria-hidden="true"></div>
+            <div class="run-area">
+              <button class="btn-cancel">Cancel</button>
+              <button class="btn-test" type="button">1 test</button>
+              <button class="btn-run">Run</button>
+            </div>
+            <section class="panel-section section-accordion is-expanded">
+              <div class="section-toggle" aria-expanded="true">
+                <span class="accordion-icon section-accordion-icon" aria-hidden="true"></span>
+                <div class="section-label section-label-inline">ACTION</div>
+              </div>
+              <div class="mock-action-line">
+                <input class="action-checkbox" type="checkbox" checked />
+                <select class="action-select"><option>Detect character</option></select>
+                <button class="btn-remove-action" aria-label="remove"></button>
+              </div>
+              <div class="mock-action-line">
+                <input class="action-checkbox" type="checkbox" />
+                <select class="action-select"><option>Export selected</option></select>
+                <button class="btn-remove-action" aria-label="remove"></button>
+              </div>
+            </section>
+            <section class="panel-section">
+              <div class="section-toggle" aria-expanded="true">
+                <span class="accordion-icon section-accordion-icon" aria-hidden="true"></span>
+                <div class="section-label section-label-inline">OPEN</div>
+              </div>
+              <div class="row row-folder">
+                <span class="field-label field-label-folder">Folder</span>
+                <button class="path-btn has-path"><span class="path-btn-text">/input</span></button>
+                <button class="btn-folder-action">Browse</button>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const rootStyle = getComputedStyle(document.documentElement);
+    document.querySelectorAll("[data-token]").forEach((item) => {
+      const token = item.dataset.token;
+      const value = rootStyle.getPropertyValue(token).trim();
+      item.style.setProperty("--swatch", `var(${token})`);
+      item.querySelector(".token-value").textContent = value;
+    });
+  </script>
+</body>
+</html>
