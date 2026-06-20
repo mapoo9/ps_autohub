@@ -110,6 +110,11 @@ function resolveRootSaveFolder(target, config) {
   return config.saveFolder1 || config.folder1;
 }
 
+function resolveTestBaseFolder(target, config) {
+  if (config.saveFolder1 || config.saveFolder2) return resolveRootSaveFolder(target, config);
+  return target.rootSourceFolder || config.folder1;
+}
+
 function hasText(value) {
   return String(value || '').trim().length > 0;
 }
@@ -153,6 +158,14 @@ function getNumberedFolderIndex(name, baseName) {
   return Number.isSafeInteger(index) && index > 0 ? index : 0;
 }
 
+function getPlainNumberedFolderIndex(name) {
+  const match = String(name || '').match(/^(\d+)$/);
+  if (!match) return 0;
+
+  const index = Number(match[1]);
+  return Number.isSafeInteger(index) && index > 0 ? index : 0;
+}
+
 async function getNextNumberedFolderIndex(parent, baseName) {
   let maxIndex = 0;
   try {
@@ -166,10 +179,39 @@ async function getNextNumberedFolderIndex(parent, baseName) {
   return maxIndex + 1;
 }
 
+async function getNextPlainNumberedFolderIndex(parent) {
+  let maxIndex = 0;
+  try {
+    const entries = await parent.getEntries();
+    for (const entry of entries) {
+      maxIndex = Math.max(maxIndex, getPlainNumberedFolderIndex(entry.name));
+    }
+  } catch (_) {
+    maxIndex = 0;
+  }
+  return maxIndex + 1;
+}
+
 async function ensureNextNumberedFolder(parent, baseName) {
   let index = await getNextNumberedFolderIndex(parent, baseName);
   while (true) {
     const candidate = `${baseName}_${index}`;
+    let existing = null;
+    try {
+      existing = await parent.getEntry(candidate);
+    } catch (_) {
+      existing = null;
+    }
+
+    if (!existing) return await parent.createFolder(candidate);
+    index += 1;
+  }
+}
+
+async function ensureNextPlainNumberedFolder(parent) {
+  let index = await getNextPlainNumberedFolderIndex(parent);
+  while (true) {
+    const candidate = String(index);
     let existing = null;
     try {
       existing = await parent.getEntry(candidate);
@@ -242,7 +284,7 @@ async function ensureRelativeFolderCached(rootFolder, relativeDir, context) {
 async function resolveExecutionRootFolder(target, config, plan, executionMode, context) {
   const useGeneratedOutputFolder = shouldUseTimestampOutput(config, executionMode);
   const baseRoot = executionMode === 'test'
-    ? (target.rootSourceFolder || config.folder1)
+    ? resolveTestBaseFolder(target, config)
     : resolveRootSaveFolder(target, config);
 
   if (!useGeneratedOutputFolder) return baseRoot;
@@ -250,14 +292,14 @@ async function resolveExecutionRootFolder(target, config, plan, executionMode, c
   const cacheKey = folderCacheKey(baseRoot) + '|' + executionMode;
   if (context.outputRootCache.has(cacheKey)) return context.outputRootCache.get(cacheKey);
 
-  let parent = baseRoot;
-  let baseName = 'Run';
   if (executionMode === 'test') {
-    parent = await ensureNamedFolder(baseRoot, '1test');
-    baseName = '1test';
+    const parent = await ensureNamedFolder(baseRoot, '1test');
+    const folder = await ensureNextPlainNumberedFolder(parent);
+    context.outputRootCache.set(cacheKey, folder);
+    return folder;
   }
 
-  const folder = await ensureNextNumberedFolder(parent, baseName);
+  const folder = await ensureNextNumberedFolder(baseRoot, 'Run');
   context.outputRootCache.set(cacheKey, folder);
   return folder;
 }

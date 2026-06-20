@@ -199,12 +199,23 @@ function createInputPart({ fs = null, isUxpRuntime = false, syncSelectWidth = ()
       button.classList.toggle('active', isDualMode && state.crossOrder === '2to1');
     });
     if (elements.orderWrap) {
-      elements.orderWrap.style.visibility = 'visible';
-      elements.orderWrap.style.display = state.sameFolderX2 ? 'flex' : 'none';
+      elements.orderWrap.style.display = 'none';
+      elements.orderWrap.style.visibility = 'hidden';
+      elements.orderWrap.style.pointerEvents = 'none';
+      elements.orderWrap.setAttribute('aria-hidden', 'true');
+      if (elements.btnCrossOrder) {
+        elements.btnCrossOrder.tabIndex = -1;
+      }
     }
     if (elements.orderWrapCross) {
-      elements.orderWrapCross.style.visibility = 'visible';
-      elements.orderWrapCross.style.display = state.folder2Expanded ? 'flex' : 'none';
+      const crossOrderVisible = isDualMode;
+      elements.orderWrapCross.style.display = 'flex';
+      elements.orderWrapCross.style.visibility = crossOrderVisible ? 'visible' : 'hidden';
+      elements.orderWrapCross.style.pointerEvents = crossOrderVisible ? 'auto' : 'none';
+      elements.orderWrapCross.setAttribute('aria-hidden', String(!crossOrderVisible));
+      if (elements.btnCrossOrderCross) {
+        elements.btnCrossOrderCross.tabIndex = crossOrderVisible ? 0 : -1;
+      }
     }
     if (elements.sectionOpen) {
       elements.sectionOpen.classList.toggle('is-cross-folder', state.folder2Expanded);

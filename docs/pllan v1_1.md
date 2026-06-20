@@ -24,7 +24,8 @@
 ## v1.1 contents
 
 - RunPlan cache and numbered output folder flow.
-- 1test saves into fixed `1test` root plus numbered child folder.
+- 1test is a test-only save path exception: when Save Folder is set, use the Save Folder as the base; otherwise use the source/input folder.
+- 1test saves into a fixed `1test` root and creates plain numbered run folders inside it, such as `1test/1`, `1test/2`, `1test/3`.
 - Run saves into numbered folders when Save Folder or Save Copy is enabled.
 - Duplicate output names use `_000`, `_001`, `_002`.
 - PSD save failure keeps PSB fallback with the same numbering policy.
@@ -44,3 +45,4 @@
   - `node --check src/ui/outputPart.js`
 - Confirm `manifest.json` parses as JSON.
 - Add `merged/Auto-HUB_v1.1_build110` in UXP Developer Tool for install testing.
+- For 1test save-path testing, set Save Folder to a folder already named `1test` and confirm output goes to `1test/1test/1`, not the source folder's existing `1test_3` style sequence.

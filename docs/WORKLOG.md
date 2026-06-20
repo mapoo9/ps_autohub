@@ -1,5 +1,31 @@
 # Auto-HUB Worklog
 
+## 2026-06-20 - v1.1.4 build004 설치 패키지 제작
+
+- 목적: 실행 버튼/OPEN-SAVE UI 보정, `1 test` 저장 경로 기준 수정, UXP 접힘 패널 아이콘 manifest 설정을 설치 테스트 가능한 패키지로 묶었다.
+- 변경: 루트 앱 버전을 `Auto-HUB v1.1.4`, 내부 빌드를 `build004`로 올렸다. `manifest.json`, `index.html`, `index.js`, `docs/build-release-guide.md`, `docs/추가작업/debug-log-events.md`, `RELEASE_REPORT.md`를 새 빌드 기준으로 갱신했다. `merged/Auto-HUB_v1.1.4_build004` 폴더와 `merged/Auto-HUB_v1.1.4_build004.zip`을 생성했다.
+- 결정: 이전 `merged/Auto-HUB_v1.1.3_build003` 설치본은 보존하고, 아이콘 확인 과정에서 임시로 동기화했던 v1.1.3 패키지 변경은 되돌렸다. 새 `icons/` 폴더는 루트와 v1.1.4 패키지에만 포함한다.
+- 검증: 루트와 패키지에서 `node --check` 대상 JS 파일, manifest JSON parse, manifest icon path 존재, PNG 크기/alpha, zip 내용, `.DS_Store` 제외, `git diff --check`를 확인했다. zip sha256은 `fdb2985e9b28c15c7b31848943225f88d8e9e2a27248d6caa1285c110ee20b68`이다.
+- 남은 작업: Photoshop UXP Developer Tool에서 `merged/Auto-HUB_v1.1.4_build004` 폴더를 로드해 접힘 패널 아이콘, 실행 버튼 섹션, ACTION/OPEN/SAVE 레이아웃, 1 test, Run을 수동 확인해야 한다.
+
+## 2026-06-20 - 실행 버튼 섹션과 섹션 타이틀바 색상 조정
+
+- 목적: 패널 상단의 `Cancel / 1 test / Run` 실행 버튼 섹션과 ACTION/OPEN/SAVE 타이틀바 시각 정렬을 사용자 기준에 맞췄다.
+- 변경: 실행 버튼 섹션 배경만 Auto-HUB 탭톤 기준 `#535353`에서 하단 어두운 톤으로 흐르는 그라데이션으로 바꿨다. 상단 10%는 `#535353`로 고정하고 상단 1px 구분선을 제거해 탭에서 실행 버튼 섹션으로 이어져 보이게 했다. 실행 버튼과 `Add action` 버튼 기본 상태는 `#717171` 배경과 `#ffffff` 라벨로 맞추고, 준비/통과 상태 라벨도 흰색으로 정리했다. ACTION/OPEN/SAVE 타이틀 라벨은 화살표 아이콘을 제외하고 우측 정렬했으며, ACTION 타이틀바만 `1 test` 녹색 계열로 변경했다. 최하단 앱버전 표시 섹션은 `#424242` 바탕과 검정 버전 텍스트로 조정했다.
+- 변경: OPEN의 Folder 1 표시 행과 `2Folder each1file` disclosure 라벨 사이 간격을 상태와 무관하게 고정했다. 펼침 상태에서 `1>2` 버튼을 새로 `display`하지 않고, 버튼 자리는 항상 예약한 뒤 `visibility`/pointer/focus 상태만 바꿔 disclosure 행의 top margin과 높이가 흔들리지 않도록 했다. `1>2` 버튼은 더 어두운 청회색 톤으로 낮추고, Folder 경로 표시창 오른쪽 끝선에 맞도록 버튼 래퍼의 오른쪽 정렬을 명시했다. OPEN 옵션 줄은 `Subfolders`를 폴더 선택창 왼쪽 끝선에 맞춘 왼쪽, `1Folder 2file`을 오른쪽으로 재배치했으며, `1>2`는 위 옵션 줄에서 제거하고 아래 disclosure 줄의 버튼을 `1Folder 2file`과 `2Folder each1file`이 공통으로 사용하게 했다.
+- 변경: ACTION/OPEN/SAVE 섹션의 내용 전체 상단/하단 여백만 통일했다. 타이틀바와 내용 사이 상단 여백은 6px, 섹션 내용 하단 여백은 그 150%인 9px로 두고, 내용 요소들 사이 간격은 유지했다.
+- 변경: Photoshop 접힘 탭에서 기본 placeholder 대신 Auto-HUB 아이콘이 쓰이도록 manifest `icons` 설정과 PNG 아이콘을 추가했다. 사용자 제공 `icon_simple-24.png`를 기준으로 top-level 플러그인 아이콘은 48px, 접힘 패널 탭 적용을 위한 `batchPanel` entrypoint 내부 panel icon은 23px으로 분리했다. 어두운 UI용은 원본 흰색 마크를 쓰고, 밝은 UI용은 같은 알파를 유지한 어두운 마크를 생성했다. Adobe manifest v5 예시 기준으로 panel icon의 어두운 UI theme에는 `darkest/dark/medium`을 포함하고, root icon에는 `species: ["generic"]`를 추가했다. 아이콘 전용 표시 여부는 Photoshop 도킹 영역 폭/상태가 최종 결정하므로, panel label은 메뉴 호환성을 위해 유지했다.
+- 결정: 사용자 스크린샷 기준으로 루트에는 아이콘 설정이 있으나 `merged/Auto-HUB_v1.1.3_build003`에는 manifest `icons`와 icon 파일이 없어, UXP Developer Tool이 최신 merged 패키지를 로드하는 경우 기본 placeholder가 계속 보일 수 있었다. 루트 source of truth는 유지하되 개발자툴 테스트용으로 최신 merged 폴더에 manifest와 icon 파일을 동기화했다. zip 재생성은 하지 않았다.
+- 남은 작업: Photoshop UXP에서 실제 패널 렌더링 시 실행 버튼 섹션 그라데이션과 ACTION/OPEN/SAVE 타이틀 라벨 위치를 수동 확인해야 한다.
+
+## 2026-06-20 - 1test 저장 경로 기준과 실행 폴더 숫자화
+
+- 목적: `1 test` 실행 시 저장 폴더를 지정했는데도 입력 폴더 기준으로 `1test_3`처럼 이어지는 문제를 정리했다.
+- 변경: `1 test`는 저장 폴더가 지정된 경우 저장 경로를 기준으로 고정 `1test` 폴더를 만들거나 재사용하고, 그 내부 실행 폴더는 `1`, `2`, `3`처럼 숫자만 사용한다.
+- 결정: 이 숫자 폴더 규칙은 `1 test` 전용 예외다. 일반 Run 출력은 기존 `Run_N` 정책을 유지한다.
+- 검증: `node --check src/core/batchController.js` 통과.
+- 남은 작업: Photoshop UXP에서 저장 폴더를 `1test`로 지정한 뒤 `1test/1` 형태로 생성되는지 수동 확인해야 한다.
+
 ## 2026-06-18 - v1.1.3 build003 설치 패키지 제작
 
 - 목적: 미커밋 작업 범위와 추가 요청된 Run/1test 폴더명, UXP 패널 사이즈, 폴더 경로 표시 보정을 설치 가능한 패키지로 동기화했다.

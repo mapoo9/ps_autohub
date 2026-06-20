@@ -5,11 +5,11 @@
 ## 현재 기준
 
 - Product name: `Auto-HUB`
-- App version: `1.1.3`
-- Display version: `v1.1.3`
-- Build label: `build 003`
-- Internal build token: `v1.1.3-build003`
-- Install package folder: `merged/Auto-HUB_v1.1.3_build003`
+- App version: `1.1.4`
+- Display version: `v1.1.4`
+- Build label: `build 004`
+- Internal build token: `v1.1.4-build004`
+- Install package folder: `merged/Auto-HUB_v1.1.4_build004`
 - Source of truth: repository root
 
 루트 소스가 개발 기준이고, `merged/*`는 설치/배포 산출물로 취급한다. Photoshop UXP Developer Tool이 어느 폴더를 로드 중인지에 따라 테스트 결과가 달라질 수 있다.
@@ -21,9 +21,9 @@ Auto-HUB는 앱 버전과 빌드 번호를 분리한다.
 ```text
 앱 버전: MAJOR.MINOR.PATCH
 빌드 번호: buildNNN
-앱 표시 예시: Auto-HUB v1.1.3
-내부 토큰: v1.1.3-build003
-패키지 폴더: Auto-HUB_v1.1.3_build003
+앱 표시 예시: Auto-HUB v1.1.4
+내부 토큰: v1.1.4-build004
+패키지 폴더: Auto-HUB_v1.1.4_build004
 ```
 
 기본 정책:
@@ -140,7 +140,7 @@ git tag v1.1.1
 같은 앱 버전에서 내부 추적용 설치본이 여러 개 필요하면 빌드 번호를 포함한다.
 
 ```sh
-git tag v1.1.3-build003
+git tag v1.1.4-build004
 ```
 
 태그는 릴리즈 기준점이 커밋된 뒤 남긴다.

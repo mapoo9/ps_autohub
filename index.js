@@ -1,5 +1,5 @@
 /**
- * index.js - Auto-HUB v1.1.3 / build 003
+ * index.js - Auto-HUB v1.1.4 / build 004
  *
  * Hub controller:
  * - initialize feature parts
@@ -25,7 +25,7 @@ let LOG_STATUS = {
   CANCELLED: 'CANCELLED',
   NO_SAVE_TARGET: 'NO_SAVE_TARGET'
 };
-const BUILD_TOKEN = 'v1.1.3-build003';
+const BUILD_TOKEN = 'v1.1.4-build004';
 
 if (typeof require === 'function') {
   try {
@@ -89,14 +89,14 @@ function getRuntimeLoadedPath() {
 }
 
 const BUILD_FINGERPRINT = {
-  appVersion: '1.1.3',
+  appVersion: '1.1.4',
   frontendBuild: BUILD_TOKEN,
   backendVersion: null,
   apiVersion: null,
   dbSchemaVersion: null,
   nativeShellVersion: isUxpRuntime ? 'UXP' : 'browser-preview',
   protocolVersion: null,
-  packageBuildId: 'build003',
+  packageBuildId: 'build004',
   runtimeLoadedPath: getRuntimeLoadedPath()
 };
 

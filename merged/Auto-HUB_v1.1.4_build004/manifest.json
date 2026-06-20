@@ -1,0 +1,77 @@
+{
+  "manifestVersion": 6,
+  "id": "com.psautohub.panel",
+  "name": "Auto-HUB",
+  "version": "1.1.4",
+  "main": "index.html",
+  "host": [
+    {
+      "app": "PS",
+      "minVersion": "26.0"
+    }
+  ],
+  "entrypoints": [
+    {
+      "type": "panel",
+      "id": "batchPanel",
+      "label": {
+        "default": "Auto-HUB"
+      },
+      "minimumSize": {
+        "width": 260,
+        "height": 120
+      },
+      "maximumSize": {
+        "width": 760,
+        "height": 1200
+      },
+      "preferredDockedSize": {
+        "width": 280,
+        "height": 700
+      },
+      "preferredFloatingSize": {
+        "width": 360,
+        "height": 700
+      },
+      "icons": [
+        {
+          "width": 23,
+          "height": 23,
+          "path": "icons/panel-icon-light-23.png",
+          "scale": [1, 2],
+          "theme": ["darkest", "dark", "medium"]
+        },
+        {
+          "width": 23,
+          "height": 23,
+          "path": "icons/panel-icon-dark-23.png",
+          "scale": [1, 2],
+          "theme": ["lightest", "light"]
+        }
+      ]
+    }
+  ],
+  "requiredPermissions": {
+    "clipboard": "readAndWrite",
+    "localFileSystem": "fullAccess",
+    "allowCodeGenerationFromStrings": true
+  },
+  "icons": [
+    {
+      "width": 48,
+      "height": 48,
+      "path": "icons/plugin-icon-light-48.png",
+      "scale": [1, 2],
+      "theme": ["dark", "darkest"],
+      "species": ["generic"]
+    },
+    {
+      "width": 48,
+      "height": 48,
+      "path": "icons/plugin-icon-dark-48.png",
+      "scale": [1, 2],
+      "theme": ["lightest", "light"],
+      "species": ["generic"]
+    }
+  ]
+}

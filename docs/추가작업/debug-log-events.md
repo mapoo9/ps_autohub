@@ -1,7 +1,7 @@
 # Auto-HUB Debug Event 후보 목록
 
 작성일: 2026-06-12
-대상 빌드: Auto-HUB `v1.1.3-build003`
+대상 빌드: Auto-HUB `v1.1.4-build004`
 
 이 문서는 Auto-HUB에서 실제로 수집할 이벤트 후보를 관리한다. 공통 Debug Mode 구조와 운영 정책은 `debug-mode-plan.md`를 기준으로 한다.
 
@@ -32,7 +32,7 @@
 
 ## Level 3: Developer Trace 후보
 
-아래 이벤트는 재현 어려운 문제를 만났을 때 단계적으로 추가한다. 현재 build003에서는 기존 ActionPresetPart 진단이 `actionCatalog/debug/message` raw 이벤트로 연결되어 있다.
+아래 이벤트는 재현 어려운 문제를 만났을 때 단계적으로 추가한다. 현재 build004에서는 기존 ActionPresetPart 진단이 `actionCatalog/debug/message` raw 이벤트로 연결되어 있다.
 
 - `actionCatalog/debug/message`: 기존 action catalog/picker console 진단
 - `actionCatalog/read/empty_probe`: `app.actionTree` shape, decoded count
