@@ -10,8 +10,8 @@
 
 - Git commit: `<hash>` 또는 `미커밋 작업 범위`
 - Git tag: `vX.Y.Z` 또는 `vX.Y.Z-buildNNN`
-- 변경 범위: `index.js`, `src/...`, `styles/...`, `docs/...`, `merged/...`
-- 패키지 폴더: `merged/Auto-HUB_vX.Y.Z_buildNNN`
+- 변경 범위: `index.js`, `src/...`, `styles/...`, `docs/...`, `dist/...`
+- 패키지 폴더: `dist/Auto-HUB_vX.Y.Z_buildNNN`
 
 ## 추가 기능
 

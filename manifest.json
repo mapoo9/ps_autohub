@@ -2,7 +2,7 @@
   "manifestVersion": 6,
   "id": "com.psautohub.panel",
   "name": "Auto-HUB",
-  "version": "1.1.4",
+  "version": "1.1.6",
   "main": "index.html",
   "host": [
     {
@@ -38,15 +38,26 @@
           "width": 23,
           "height": 23,
           "path": "icons/panel-icon-light-23.png",
-          "scale": [1, 2],
-          "theme": ["darkest", "dark", "medium"]
+          "scale": [
+            1
+          ],
+          "theme": [
+            "darkest",
+            "dark",
+            "medium"
+          ]
         },
         {
           "width": 23,
           "height": 23,
           "path": "icons/panel-icon-dark-23.png",
-          "scale": [1, 2],
-          "theme": ["lightest", "light"]
+          "scale": [
+            1
+          ],
+          "theme": [
+            "lightest",
+            "light"
+          ]
         }
       ]
     }
@@ -61,17 +72,31 @@
       "width": 48,
       "height": 48,
       "path": "icons/plugin-icon-light-48.png",
-      "scale": [1, 2],
-      "theme": ["dark", "darkest"],
-      "species": ["generic"]
+      "scale": [
+        1
+      ],
+      "theme": [
+        "dark",
+        "darkest"
+      ],
+      "species": [
+        "generic"
+      ]
     },
     {
       "width": 48,
       "height": 48,
       "path": "icons/plugin-icon-dark-48.png",
-      "scale": [1, 2],
-      "theme": ["lightest", "light"],
-      "species": ["generic"]
+      "scale": [
+        1
+      ],
+      "theme": [
+        "lightest",
+        "light"
+      ],
+      "species": [
+        "generic"
+      ]
     }
   ]
 }

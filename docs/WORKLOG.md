@@ -1,5 +1,15 @@
 # Auto-HUB Worklog
 
+## 2026-06-21 - v1.1.6 build007 설치 빌드 제작
+
+- 목적: 패널 톤 재정비/폴더 행 아이콘화/액션 picker 폭 확장 + more Actions 노출 수정까지 누적된 루트 변경을 설치 가능한 빌드로 묶었다. 아이콘(접힘 패널 탭) 표시 이슈는 추후 처리로 분리.
+- 변경(버전): 앱 버전 `v1.1.6`, 내부 빌드 `build007`로 올렸다. `manifest.json`, `index.js`(BUILD_TOKEN/appVersion/packageBuildId/주석), `index.html`, `docs/build-release-guide.md`, `docs/추가작업/debug-log-events.md`, `CLAUDE.md`, `RELEASE_REPORT.md` 동기화.
+- 정리(아이콘 테스트 잔재): 디버깅용 주황 `panel-test-23/46.png`와 `@2x` 실험 파일을 제거하고, 패널 entrypoint 아이콘을 정상 설정(실제 `panel-icon-light/dark-23.png`, `scale:[1]`, 테마 쌍)으로 복원했다. root 아이콘도 `scale:[1]`로 통일.
+- 결정(아이콘 처리 보류): 접힘 패널 탭 커스텀 아이콘 미표시는 진단 결과 manifest/파일 문제가 아니라 (1) UDT 로드 폴더와 편집 폴더 불일치 (2) 빈-네모 placeholder 아트 (3) UXP/PS 캐시·렌더 변수가 얽힌 cosmetic 이슈로 판단, 이번 빌드에서 제외하고 추후 실제 로고 작업 시 함께 처리한다.
+- 빌드: 가이드 체크리스트대로 `node --check`(index.js, src/core/*, src/ui/*)·manifest parse 통과. `dist/Auto-HUB_v1.1.6_build007` 폴더 + zip 생성(.DS_Store/panel-test 미포함 확인), `uxp` CLI로 `.ccx` 생성(PS 27.7 검증 통과, manifest root 배치 확인).
+- 검증/체크섬: zip `829a1cb1c49cda6c0a8a88ac8d7e372282e12408f686279593cb2eb2dfd177d0`, `.ccx` `35fb05028e500c170c6d196513b74415fcffd9a3863b09c338940cbef0c7f5a8`.
+- 남은 작업: Photoshop 실기 확인(톤/폴더 아이콘/picker 폭, more Actions 노출, 1 test, Run). 접힘 패널 아이콘 cosmetic 처리.
+
 ## 2026-06-21 - 패널 비주얼 디자인 톤 재정비 + 폴더 행 아이콘화 + 액션 picker 폭 확장
 
 - 목적: 구조는 유지하고 패널 전반의 톤/가독성을 정리했다. 색 계층 대비를 낮춰 "톤으로 구분되는 깔끔한 전문 패널" 방향으로 맞췄다.
