@@ -1,5 +1,30 @@
 # Auto-HUB Worklog
 
+## 2026-06-21 - 패널 비주얼 디자인 톤 재정비 + 폴더 행 아이콘화 + 액션 picker 폭 확장
+
+- 목적: 구조는 유지하고 패널 전반의 톤/가독성을 정리했다. 색 계층 대비를 낮춰 "톤으로 구분되는 깔끔한 전문 패널" 방향으로 맞췄다.
+- 변경(토큰): `styles/panel.css` 디자인 토큰 전반을 재조정했다. surface/text/accent 색을 깊은 차콜 기반으로 낮췄다가, 어두운 포인트들의 톤차가 심하다는 피드백으로 `--surface-base` 등 어두운 레이어를 다시 올렸다. 실행 버튼 영역·앱버전 푸터·섹션 토글 배경은 옆 탭(Lasso Auto Fill) 바탕톤(~`#464646`)에 근접하도록 맞췄다. 섹션 토글은 좌측 2px accent 보더 + uppercase 라벨로 정리했다.
+- 변경(체크박스): 액션 행 체크박스 `:checked` 배경을 Run 버튼의 파란색(`--run-main` #3d7ec4)으로 통일했다. 기존 규칙을 뒤에서 덮어쓰면 UXP 시스템 스타일에 밀려 흰색으로 남아, 원본 `.action-checkbox:checked` 규칙 자체를 수정하고 `!important`로 강제했다.
+- 결정(order 버튼): OPEN 옵션 줄의 `order` 라벨을 제거하고 `1>2` 토글 버튼만 남겼다. 버튼 등장/숨김 시 행 높이가 흔들리던 문제는, `display:none`→`flex` 토글이 레이아웃에서 요소를 제거하는 게 원인이었다. `visibility:hidden`으로 바꿔 자리를 항상 예약하도록 했다(HTML 초기값도 `hidden` 속성 → `style="visibility:hidden"`). `.btn-cross` 클래스를 떼어 `min-height:22px` 간섭도 제거했다.
+- 결정(폴더 행 아이콘): OPEN/SAVE의 `Folder` 텍스트 라벨 4곳을 제거하고 path-btn을 전체 폭으로 넓혔다. Browse/Reset 버튼은 정사각 아이콘 버튼으로 바꿨다. 빈 path-btn에는 `::after` 블링킹 커서(`|`)를 넣었다.
+- 결정(아이콘 렌더 방식): 폴더 아이콘은 `background:url()`+`background-size:contain` 방식이 UXP에서 표시되지 않았다. 검증된 `.icon-mask`(`background-color:currentColor` + `mask-image`) 방식으로 전환하니 정상 표시됐다 — icon-add/icon-close와 동일 패턴. 공통 `Ref/ps_uxp_icons/FolderBreadcrumb.svg`의 복잡한 18x18 path도 렌더 실패 요인이라, 단순 닫힌 폴더 path로 다시 그려 `assets/icons/folder.svg`에 넣었다. Reset 상태는 `close.svg` 마스크로 교체한다.
+- 변경(액션 picker 폭): `src/ui/actionPresetPart.js` `positionPopup`에서 action picker 팝업을 세트 picker 왼쪽 끝~X 버튼 직전까지 펼치도록 했다. 긴 액션 이름이 잘리지 않게 하는 게 우선이라 세트 picker 영역(약 36%)을 팝업이 덮는 것을 허용한다.
+- 변경(가독성): 빈 폴더 placeholder(`.path-btn.empty`)를 `--text-faint`→`--text-label`로, 앱버전 표시(`.panel-title`)를 검정(`#000000`)·6px에서 `--text-muted`·10px(`--font-meta`)로 올렸다.
+- 검증: `node --check src/ui/actionPresetPart.js` 통과. 색/아이콘/picker 폭은 Photoshop UXP에서 수동 확인 필요.
+- 남은 작업: 루트 소스만 수정한 상태다. `dist/*` 패키지 동기화와 Photoshop 실기 확인은 별도 릴리즈 작업으로 분리한다.
+
+## 2026-06-20 - v1.1.5 build006: more Actions 노출 수정 + DevTools 채널 + .ccx CLI 빌드
+
+- 목적: ACTION "more Actions" 노출 조건을 바로잡고, 앱 버전을 v1.1.5로 올려 메인/DevTools 두 설치본을 `.ccx`로 생성했다.
+- 변경(UX): `src/ui/actionPresetPart.js` `render()`의 분류 기준을 `enabled` → `isFavoriteSlot`(활성+선택)로 바꾸고, 즐겨찾기 0개면 모든 슬롯을 인라인 표시하도록 수정했다. 최초 상태/선택 없음에서 more Actions가 뜨던 버그를 정리했다.
+- 결정(UX): more Actions는 "즐겨찾기를 위로 모았을 때 남는 비즐겨찾기 슬롯"을 접는 영역으로 정의한다. 즐겨찾기가 없으면 접을 대상도 없으므로 그룹 자체를 만들지 않는다. 이 분기 로직은 be154dd(2026-06-02) 도입 후 처음 수정됐다.
+- 변경(버전): `manifest.json`, `index.js`(BUILD_TOKEN/appVersion/packageBuildId/주석), `index.html`, `docs/build-release-guide.md`, `docs/추가작업/debug-log-events.md`, `CLAUDE.md`, `RELEASE_REPORT.md`를 `v1.1.5 / build006` 기준으로 동기화했다.
+- 결정(빌드 폴더): 빌드 산출물 폴더를 `merged/` → `dist/`로 통일했다.
+- 결정(Dev 채널): `dist/Auto-HUB-DevTools_v1.1.5_build006`는 별도 식별자(`id=com.psautohub.panel.dev`, name=`Auto-HUB DevTools`, label=`Auto-HUB Dev`, 패널 타이틀 `Auto-HUB Dev`)로, 메인과 공존 설치되는 테스트 채널이다. preset/storage는 메인과 분리된다.
+- 빌드(.ccx): `uxp` CLI로 패키징했다. Apple Silicon이라 Rosetta + x86_64 node 18 필요, helper postinstall의 tar 누락은 수동 우회, 패키징은 UDT 서비스+Photoshop 실행 상태에서 `.git` 없는 `dist/<pkg>` 폴더에서 실행했다. 상세는 메모리 `uxp-ccx-build-apple-silicon`.
+- 검증: `node --check`(index.js, actionPresetPart.js), manifest JSON parse, .ccx 내부 manifest 식별자/패널 아이콘 유지, 산출물 생성 확인. 체크섬 — 메인 `.ccx` `3bff946d7e4f00b2bf7541c2538076a3d9edf9b0bc76ab6bc058f27289db75ac`, DevTools `.ccx` `cd9f5417168003e8d1026894d4ed9bfd711ed1fba5b0bae0fdea5bc1dc239629`.
+- 남은 작업: Photoshop에서 메인/DevTools 설치 후 more Actions 노출 조건과 접힘 패널 아이콘을 수동 확인. DevTools(새 id, 클린 설치)에서 아이콘이 정상이면 기존 아이콘 미표시는 캐시/재시작 이슈로 확정.
+
 ## 2026-06-20 - v1.1.4 build004 설치 패키지 제작
 
 - 목적: 실행 버튼/OPEN-SAVE UI 보정, `1 test` 저장 경로 기준 수정, UXP 접힘 패널 아이콘 manifest 설정을 설치 테스트 가능한 패키지로 묶었다.

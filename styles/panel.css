@@ -289,9 +289,9 @@ input:focus-visible {
 }
 
 .panel-title {
-  color: #000000;
-  font-size: var(--font-tiny);
-  font-weight: 400;
+  color: var(--text-muted);
+  font-size: var(--font-meta);
+  font-weight: 500;
   line-height: var(--lh-ui);
   text-align: right;
 }
@@ -573,7 +573,7 @@ body.preview-mode .preview-banner {
 
 .path-btn.empty {
   justify-content: center;
-  color: var(--text-faint);
+  color: var(--text-label);
 }
 
 .path-btn.empty .path-btn-text {

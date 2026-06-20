@@ -448,17 +448,30 @@ function createActionPresetPart({
       popup.style.width = Math.round(picker.offsetWidth * 1.1) + 'px';
       popup.style.left = '0';
     } else if (isActionPicker) {
-      // Action picker popup: start 5% earlier (left), extend right to X button
+      // Action picker popup: extend left to cover the set picker and right to
+      // the X button, so long action names are visible without truncation.
       const row = picker.closest('.action-row');
+      const setPicker = row ? row.querySelector('.set-select') : null;
       const removeBtn = row ? row.querySelector('.btn-remove-action') : null;
-      const pickerRectForW = picker.getBoundingClientRect();
-      const shiftLeft = Math.round(picker.offsetWidth * 0.05);
-      let targetWidth = picker.offsetWidth + shiftLeft; // base: picker width + shift amount
+      const pickerRect = picker.getBoundingClientRect();
+
+      // Left edge: align with the set picker's left edge (fall back to a small
+      // shift if the set picker can't be found).
+      let shiftLeft = Math.round(picker.offsetWidth * 0.05);
+      if (setPicker) {
+        const setRect = setPicker.getBoundingClientRect();
+        shiftLeft = Math.round(pickerRect.left - setRect.left);
+        if (shiftLeft < 0) shiftLeft = 0;
+      }
+
+      // Right edge: extend to just before the X button.
+      let rightEdge = pickerRect.right;
       if (removeBtn) {
         const removeRect = removeBtn.getBoundingClientRect();
-        const desiredWidth = (removeRect.left - pickerRectForW.left) + shiftLeft;
-        if (desiredWidth > targetWidth) targetWidth = desiredWidth;
+        rightEdge = removeRect.left - 2;
       }
+
+      const targetWidth = (rightEdge - pickerRect.left) + shiftLeft;
       popup.style.width = Math.round(targetWidth) + 'px';
       popup.style.left = (-shiftLeft) + 'px';
     } else {
@@ -726,26 +739,35 @@ function createActionPresetPart({
     const list = elements.actionList;
     list.innerHTML = '';
 
-    const enabledEntries = [];
-    const disabledEntries = [];
+    // 즐겨찾기(활성 + 선택됨)와 그 외 슬롯으로 나눈다. "more Actions"는
+    // 즐겨찾기를 위로 모았을 때 남는 비즐겨찾기 슬롯을 접어두는 영역이므로,
+    // 즐겨찾기가 하나도 없으면(최초 상태 / 선택 없음) 그룹을 만들지 않고
+    // 모든 슬롯을 그대로 인라인 표시한다.
+    const favoriteEntries = [];
+    const otherEntries = [];
     state.slots.forEach((slot, index) => {
-      if (slot.enabled !== false) enabledEntries.push({ slot, index });
-      else disabledEntries.push({ slot, index });
+      if (isFavoriteSlot(slot)) favoriteEntries.push({ slot, index });
+      else otherEntries.push({ slot, index });
     });
 
-    enabledEntries.sort((a, b) => {
+    favoriteEntries.sort((a, b) => {
       const ao = Number(a.slot.enabledOrder) || 0;
       const bo = Number(b.slot.enabledOrder) || 0;
       if (ao !== bo) return ao - bo;
       return a.index - b.index;
     });
 
-    enabledEntries.forEach(({ slot, index }) => {
-      list.appendChild(buildSlotRow(slot, index));
-    });
-
-    if (disabledEntries.length > 0) {
-      list.appendChild(buildMoreActionsAccordion(disabledEntries));
+    if (favoriteEntries.length === 0) {
+      state.slots.forEach((slot, index) => {
+        list.appendChild(buildSlotRow(slot, index));
+      });
+    } else {
+      favoriteEntries.forEach(({ slot, index }) => {
+        list.appendChild(buildSlotRow(slot, index));
+      });
+      if (otherEntries.length > 0) {
+        list.appendChild(buildMoreActionsAccordion(otherEntries));
+      }
     }
 
     elements.actionCount.textContent = '(' + state.slots.length + '/' + MAX_ACTION_ROWS + ')';
