@@ -1,5 +1,13 @@
 # Auto-HUB Worklog
 
+## 2026-06-29 - AGENTS 작업 가이드 최신화
+
+- 목적: `CLAUDE.md`에 반영된 최신 작업/빌드/패키지 기준을 Codex/agent용 `AGENTS.md`에도 맞췄다.
+- 변경: 작업 원칙, `dist/*` source-of-truth 기준, v1.1.6 build007 버전 기준, sideload/.ccx 정책, Action 중단/slot 메모리, commit 규칙을 `AGENTS.md`에 추가·갱신했다.
+- 결정: `merged/*` 기준은 과거 산출물 경로이므로 agent 문서에서는 현재 기준인 `dist/*`로 정리한다. `CLAUDE.md`와 실제 `manifest.json`/`index.js`/`dist/` 상태가 일치하는 것을 확인했다.
+- 검증: 문서 변경만 수행해 `node --check` 대상 없음. `git diff`로 `AGENTS.md` 반영 범위 확인.
+- 남은 작업: 없음.
+
 ## 2026-06-21 - v1.1.6 build007 설치 빌드 제작
 
 - 목적: 패널 톤 재정비/폴더 행 아이콘화/액션 picker 폭 확장 + more Actions 노출 수정까지 누적된 루트 변경을 설치 가능한 빌드로 묶었다. 아이콘(접힘 패널 탭) 표시 이슈는 추후 처리로 분리.
