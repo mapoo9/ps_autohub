@@ -1,5 +1,14 @@
 # Auto-HUB Worklog
 
+## 2026-06-29 - 프로젝트 폴더 구조 가이드 정리본 추가
+
+- 목적: 공통 가이드 `guides/project-folder-structure-guide.md`(doc 0004)를 프로젝트 참조 문서로 정리했다. UXP 채널 정리본에 이어 폴더 구조 표준도 확인 요청에 따라 반영.
+- 변경: `docs/project-folder-structure-guide.md` 신규(권장 루트 구조, dev/launcher/build 분담, dev 멀티앱 내부 구조, lab worktree, Auto-HUB 현황·갭). `CLAUDE.md` 문서 목록에 추가.
+- 발견(갭): 공통 표준은 `dev/`=SoT, `build/`=릴리즈 박제, 루트에 input/output/runs/logs/cache 공유 폴더를 둔다. Auto-HUB는 루트 자체가 SoT이고 산출물은 `dist/`인 평면 구조라 크게 다르다. 단일 패널이라 멀티앱 구조는 불필요하나, SoT 위치와 산출물 폴더명 차이는 UDT 로드 경로·기존 워크플로와 얽혀 마이그레이션 결정 대상이다.
+- 결정: 공통 가이드도 즉시 강제하지 않으므로 기준 정리까지만 한다. SoT를 dev/로 옮길지 vs 루트 유지를 override로 명문화할지, dist→build 통일 여부, lab worktree 도입 여부를 후속 결정 대상으로 남긴다.
+- 검증: 문서 변경만이라 `node --check` 대상 없음.
+- 남은 작업: 위 폴더 구조 적용/override 명문화 결정.
+
 ## 2026-06-29 - UXP 채널/릴리즈 빌드 가이드 정리본 추가
 
 - 목적: 공통 가이드(`0_CommonGuides`)의 UXP 채널·dev 폴더 구조·릴리즈 빌드 기준을 프로젝트에서 바로 참조할 수 있게 정리했다.
