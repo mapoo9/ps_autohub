@@ -11,7 +11,8 @@ Photoshop UXP 패널 `Auto-HUB` 프로젝트의 Claude Code 작업 지침이다.
 ## 프로젝트 문서
 
 - 빌드/릴리즈/버전 규칙: `docs/build-release-guide.md`
-- UXP 패널 빌드 형식(.ccx/sideload) 공통 기준: `../공통/docs/uxp/uxp-panel-build-guide.md`
+- UXP 채널/릴리즈 빌드 정리본(공통 가이드 발췌): `docs/uxp-release-channel-guide.md`
+- UXP 빌드/채널/버전 공통 원문: `0_CommonGuides/guides/photoshop-scripts/uxp-build-release-guide.md`, `0_CommonGuides/02-version-management-policy.md`, `0_CommonGuides/04-release-report-guide.md`
 - 릴리즈 보고서 템플릿: `docs/release-report-template.md`
 - 워크로그 규칙: `docs/WORKLOG_GUIDE.md` / 현재 워크로그: `docs/WORKLOG.md`
 - Debug Mode 계획: `docs/추가작업/debug-mode-plan.md`

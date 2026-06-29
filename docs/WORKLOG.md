@@ -1,5 +1,14 @@
 # Auto-HUB Worklog
 
+## 2026-06-29 - UXP 채널/릴리즈 빌드 가이드 정리본 추가
+
+- 목적: 공통 가이드(`0_CommonGuides`)의 UXP 채널·dev 폴더 구조·릴리즈 빌드 기준을 프로젝트에서 바로 참조할 수 있게 정리했다.
+- 변경: `docs/uxp-release-channel-guide.md` 신규 작성(채널 모델, 권장 id/표시명, 분리 대상, 산출물 구조, 버전 정책, 빌드 후 확인, 변경/릴리즈 리포트 차이, Auto-HUB 현황·갭). `CLAUDE.md` 프로젝트 문서 목록에 정리본과 공통 원문 경로를 추가하고, 구식 `../공통/docs/uxp/...` 링크를 `0_CommonGuides` 기준으로 교체.
+- 발견(갭): 공통 최신 모델(doc 0006)은 `_Dev`(`.dev`)/QA 포터블(`.qa`)/`_Lab`(`.lab`) 별도 id를 권장하나, 현재 `dist/Auto-HUB-DevTools_v1.1.5_build006`은 Release와 동일한 plugin id `com.psautohub.panel`을 쓴다. Release와 동시 설치 시 업데이트 식별 충돌 위험이 있어 후속 결정 대상으로 문서에 명시했다.
+- 결정: 이번 작업은 "일단 정리"용 참조 문서 추가까지만 한다. 채널 구조 실제 변경(id 분리, 데이터 경로 분리)은 별도 결정 후 진행한다.
+- 검증: 문서/마크다운 변경만이라 `node --check` 대상 없음. 공통 원문 doc_version(0006/0003/0003)과 현재 manifest id/version 실태를 직접 확인해 정리했다.
+- 남은 작업: 위 채널 id/데이터 분리 정식화 여부 결정.
+
 ## 2026-06-29 - AGENTS 작업 가이드 최신화
 
 - 목적: `CLAUDE.md`에 반영된 최신 작업/빌드/패키지 기준을 Codex/agent용 `AGENTS.md`에도 맞췄다.
